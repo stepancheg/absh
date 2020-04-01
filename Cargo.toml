@@ -1,0 +1,8 @@
+[package]
+name = "absh"
+version = "0.0.0"
+authors = ["Stiopa Koltsov <stepan.koltsov@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+structopt = "0.3"
