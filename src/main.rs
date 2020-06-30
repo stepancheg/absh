@@ -131,8 +131,8 @@ fn main() {
     let mut b_durations = Vec::new();
 
     loop {
-        run_test(&b, &mut a_durations);
-        run_test(&a, &mut b_durations);
+        run_test(&b, &mut b_durations);
+        run_test(&a, &mut a_durations);
         if a_durations.len() < 3 || b_durations.len() < 3 {
             continue;
         }
