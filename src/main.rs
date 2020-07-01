@@ -136,7 +136,10 @@ fn main() {
         if a_durations.len() < 3 || b_durations.len() < 3 {
             continue;
         }
-        eprintln!("A: {}", stats(&a_durations));
-        eprintln!("B: {}", stats(&b_durations));
+        let a_stats = stats(&a_durations);
+        let b_stats = stats(&b_durations);
+        eprintln!("A: {}", a_stats);
+        eprintln!("B: {}", b_stats);
+        eprintln!("B/A: {:.3}", (b_stats.avg.millis as f64) / (a_stats.avg.millis as f64));
     }
 }
