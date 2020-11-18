@@ -89,9 +89,15 @@ struct Stats {
     std: Duration,
 }
 
+impl Stats {
+    fn se(&self) -> Duration {
+        Duration { millis: (self.std.millis as f64 / f64::sqrt((self.count - 1) as f64)) as u64 }
+    }
+}
+
 impl fmt::Display for Stats {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "N={}, r={}+-{}", self.count, self.avg, self.std)
+        write!(f, "n={} r={}+-{} se={}", self.count, self.avg, self.std, self.se())
     }
 }
 
