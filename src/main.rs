@@ -9,6 +9,9 @@ use std::ops::Sub;
 use std::time::Instant;
 use structopt::StructOpt;
 
+use absh::t_table;
+use absh::TWO_SIDED_95;
+
 struct Test {
     name: &'static str,
     warmup: String,
@@ -221,10 +224,11 @@ fn main() {
         eprintln!("{}A{}: {}", red, reset, a_stats);
         eprintln!("{}B{}: {}", green, reset, b_stats);
 
-        let almost_two_for_95_confidence = 1.96;
+        let degrees_of_freedom = u64::min(a_stats.count as u64 - 1, b_stats.count as u64 - 1);
+        let t_star = t_table(degrees_of_freedom, TWO_SIDED_95);
 
         // Half of a confidence interval
-        let conf_h = almost_two_for_95_confidence
+        let conf_h = t_star
             * f64::sqrt(
                 a_stats.var() / (a_stats.count - 1) as f64
                     + b_stats.var() / (b_stats.count - 1) as f64,
