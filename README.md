@@ -9,10 +9,10 @@ $ absh \
 ```
 
 It continuously run `B`, `b`, `A`, `a`; ignores the numbers of the first iteration,
-and then after third iteration it prints average and standard deviation:
+and then after third iteration it prints averages, and 95% confidence interval of B average/A average.
 
 ```
-A: N=12, r=65.748+-1.704
-B: N=12, r=67.983+-2.440
-B/A: 1.034
+A: n=30 r=14.388+-0.959 se=0.178
+B: n=30 r=12.682+-1.221 se=0.226
+B/A: 0.845..0.919 (95% conf)
 ```
