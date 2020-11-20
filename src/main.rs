@@ -35,7 +35,7 @@ fn spawn_sh(script: &str) -> Child {
         .expect("launch /bin/sh")
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 struct Duration {
     millis: u64,
 }
@@ -121,6 +121,8 @@ fn run_test(test: &Test, duration_millis: &mut Vec<Duration>) {
 struct Stats {
     count: u64,
     mean: Duration,
+    med: Duration,
+    min: Duration,
     std: Duration,
 }
 
@@ -142,18 +144,24 @@ impl fmt::Display for Stats {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "n={} r={}+-{} se={}",
+            "n={} mean={} std={} se={} min={} med={}",
             self.count,
             self.mean,
             self.std,
-            self.se()
+            self.se(),
+            self.min,
+            self.med,
         )
     }
 }
 
-fn stats(durations: &[Duration]) -> Stats {
+fn stats(durations: &mut [Duration]) -> Stats {
     assert!(durations.len() >= 3);
-    let durations = &durations[1..];
+    let durations = &mut durations[1..];
+
+    // sort to obtain min/median
+    durations.sort();
+
     let sum: f64 = durations.iter().map(|d| d.millis as f64).sum();
     let avg: f64 = sum / durations.len() as f64;
     let s_2 = durations
@@ -162,9 +170,18 @@ fn stats(durations: &[Duration]) -> Stats {
         .sum::<f64>()
         / ((durations.len() - 1) as f64);
     let std = f64::sqrt(s_2);
+
+    let med = if durations.len() % 2 == 0 {
+        (durations[durations.len() / 2 - 1] + durations[durations.len() / 2]) / 2
+    } else {
+        durations[durations.len() / 2]
+    };
+
     Stats {
         count: durations.len() as u64,
         mean: Duration { millis: avg as u64 },
+        med,
+        min: durations[0],
         std: Duration { millis: std as u64 },
     }
 }
@@ -198,8 +215,8 @@ fn main() {
         if a_durations.len() < 3 || b_durations.len() < 3 {
             continue;
         }
-        let a_stats = stats(&a_durations);
-        let b_stats = stats(&b_durations);
+        let a_stats = stats(&mut a_durations);
+        let b_stats = stats(&mut b_durations);
         eprintln!();
         eprintln!("{}A{}: {}", red, reset, a_stats);
         eprintln!("{}B{}: {}", green, reset, b_stats);
