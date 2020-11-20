@@ -77,6 +77,7 @@ impl fmt::Display for Duration {
 }
 
 fn run_test(test: &Test, duration_millis: &mut Vec<Duration>) {
+    eprintln!();
     eprintln!("running test: {}", test.name);
     let warmup_lines = test.warmup.lines().collect::<Vec<_>>();
     if !warmup_lines.is_empty() {
@@ -185,6 +186,12 @@ fn main() {
     let mut a_durations = Vec::new();
     let mut b_durations = Vec::new();
 
+    let is_tty = !cfg!(windows) && atty::is(atty::Stream::Stderr);
+    let (green, red, reset) = match is_tty {
+        true => ("\x1B[32m", "\x1B[31m", "\x1B[0m"),
+        false => ("", "", ""),
+    };
+
     loop {
         run_test(&b, &mut b_durations);
         run_test(&a, &mut a_durations);
@@ -193,8 +200,9 @@ fn main() {
         }
         let a_stats = stats(&a_durations);
         let b_stats = stats(&b_durations);
-        eprintln!("A: {}", a_stats);
-        eprintln!("B: {}", b_stats);
+        eprintln!();
+        eprintln!("{}A{}: {}", red, reset, a_stats);
+        eprintln!("{}B{}: {}", green, reset, b_stats);
 
         let almost_two_for_95_confidence = 1.96;
 
@@ -211,6 +219,6 @@ fn main() {
         let b_a_min = (b_stats.mean.millis as f64 - conf_q) / (a_stats.mean.millis as f64 + conf_q);
         let b_a_max = (b_stats.mean.millis as f64 + conf_q) / (a_stats.mean.millis as f64 - conf_q);
 
-        eprintln!("B/A: {:.3}..{:.3} (95% conf)", b_a_min, b_a_max)
+        eprintln!("B/A: {:.3}..{:.3} (95% conf)", b_a_min, b_a_max);
     }
 }
