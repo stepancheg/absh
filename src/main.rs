@@ -3,6 +3,9 @@ use std::process::Command;
 use std::process::Stdio;
 
 use std::fmt;
+use std::ops::Add;
+use std::ops::Div;
+use std::ops::Sub;
 use std::time::Instant;
 use structopt::StructOpt;
 
@@ -32,8 +35,39 @@ fn spawn_sh(script: &str) -> Child {
         .expect("launch /bin/sh")
 }
 
+#[derive(Copy, Clone)]
 struct Duration {
     millis: u64,
+}
+
+impl Sub for Duration {
+    type Output = Duration;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Duration {
+            millis: self.millis - rhs.millis,
+        }
+    }
+}
+
+impl Add for Duration {
+    type Output = Duration;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Duration {
+            millis: self.millis + rhs.millis,
+        }
+    }
+}
+
+impl Div<u64> for Duration {
+    type Output = Duration;
+
+    fn div(self, rhs: u64) -> Self::Output {
+        Duration {
+            millis: self.millis / rhs,
+        }
+    }
 }
 
 impl fmt::Display for Duration {
@@ -85,19 +119,34 @@ fn run_test(test: &Test, duration_millis: &mut Vec<Duration>) {
 
 struct Stats {
     count: u64,
-    avg: Duration,
+    mean: Duration,
     std: Duration,
 }
 
 impl Stats {
+    /// sigma^2
+    fn var(&self) -> f64 {
+        let millis = self.std.millis as f64;
+        millis * millis
+    }
+
     fn se(&self) -> Duration {
-        Duration { millis: (self.std.millis as f64 / f64::sqrt((self.count - 1) as f64)) as u64 }
+        Duration {
+            millis: (self.std.millis as f64 / f64::sqrt((self.count - 1) as f64)) as u64,
+        }
     }
 }
 
 impl fmt::Display for Stats {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "n={} r={}+-{} se={}", self.count, self.avg, self.std, self.se())
+        write!(
+            f,
+            "n={} r={}+-{} se={}",
+            self.count,
+            self.mean,
+            self.std,
+            self.se()
+        )
     }
 }
 
@@ -114,7 +163,7 @@ fn stats(durations: &[Duration]) -> Stats {
     let std = f64::sqrt(s_2);
     Stats {
         count: durations.len() as u64,
-        avg: Duration { millis: avg as u64 },
+        mean: Duration { millis: avg as u64 },
         std: Duration { millis: std as u64 },
     }
 }
@@ -146,6 +195,22 @@ fn main() {
         let b_stats = stats(&b_durations);
         eprintln!("A: {}", a_stats);
         eprintln!("B: {}", b_stats);
-        eprintln!("B/A: {:.3}", (b_stats.avg.millis as f64) / (a_stats.avg.millis as f64));
+
+        let almost_two_for_95_confidence = 1.96;
+
+        // Half of a confidence interval
+        let conf_h = almost_two_for_95_confidence
+            * f64::sqrt(
+                a_stats.var() / (a_stats.count - 1) as f64
+                    + b_stats.var() / (b_stats.count - 1) as f64,
+            );
+
+        // Quarter of a confidence interval
+        let conf_q = conf_h / 2.0;
+
+        let b_a_min = (b_stats.mean.millis as f64 - conf_q) / (a_stats.mean.millis as f64 + conf_q);
+        let b_a_max = (b_stats.mean.millis as f64 + conf_q) / (a_stats.mean.millis as f64 - conf_q);
+
+        eprintln!("B/A: {:.3}..{:.3} (95% conf)", b_a_min, b_a_max)
     }
 }
