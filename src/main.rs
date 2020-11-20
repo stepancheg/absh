@@ -73,6 +73,14 @@ impl Div<u64> for Duration {
     }
 }
 
+impl Div<Duration> for Duration {
+    type Output = f64;
+
+    fn div(self, rhs: Duration) -> Self::Output {
+        self.millis as f64 / rhs.millis as f64
+    }
+}
+
 impl fmt::Display for Duration {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}.{:03}", self.millis / 1000, self.millis % 1000)
@@ -240,6 +248,11 @@ fn main() {
         let b_a_min = (b_stats.mean.millis as f64 - conf_q) / (a_stats.mean.millis as f64 + conf_q);
         let b_a_max = (b_stats.mean.millis as f64 + conf_q) / (a_stats.mean.millis as f64 - conf_q);
 
-        eprintln!("B/A: {:.3}..{:.3} (95% conf)", b_a_min, b_a_max);
+        eprintln!(
+            "B/A: {:.3} {:.3}..{:.3} (95% conf)",
+            b_stats.mean / a_stats.mean,
+            b_a_min,
+            b_a_max
+        );
     }
 }
