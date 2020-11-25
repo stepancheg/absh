@@ -157,13 +157,13 @@ impl fmt::Display for Stats {
         let _ = self.max;
         write!(
             f,
-            "n={} mean={} std={} se={} min={} med={}",
-            self.count,
-            self.mean,
-            self.std,
-            self.se(),
-            self.min,
-            self.med,
+            "n={n} mean={mean} std={std} se={se} min={min} med={med}",
+            n = self.count,
+            mean = self.mean,
+            std = self.std,
+            se = self.se(),
+            min = self.min,
+            med = self.med,
         )
     }
 }
