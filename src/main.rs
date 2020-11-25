@@ -20,14 +20,30 @@ struct Test {
 
 #[derive(StructOpt, Debug)]
 struct Opts {
-    #[structopt(short = "a", long = "a")]
+    #[structopt(short = "a", help = "A variant shell script")]
     a: String,
-    #[structopt(short = "b", long = "b")]
+    #[structopt(short = "b", help = "B variant shell script")]
     b: String,
-    #[structopt(short = "A", long = "a-warmup", default_value = "")]
+    #[structopt(
+        short = "A",
+        long = "a-warmup",
+        default_value = "",
+        help = "A variant warmup shell script"
+    )]
     aw: String,
-    #[structopt(short = "B", long = "b-warmup", default_value = "")]
+    #[structopt(
+        short = "B",
+        long = "b-warmup",
+        default_value = "",
+        help = "B variant warmup shell script"
+    )]
     bw: String,
+    #[structopt(
+        short = "r",
+        long = "random-order",
+        help = "Randomise test execution order"
+    )]
+    random_order: bool,
 }
 
 fn spawn_sh(script: &str) -> Child {
@@ -201,17 +217,17 @@ fn stats(durations: &mut [Duration]) -> Stats {
 }
 
 fn main() {
-    let ops = Opts::from_args();
+    let opts = Opts::from_args();
 
     let a = Test {
         name: "A",
-        warmup: ops.aw,
-        run: ops.a,
+        warmup: opts.aw,
+        run: opts.a,
     };
     let b = Test {
         name: "B",
-        warmup: ops.bw,
-        run: ops.b,
+        warmup: opts.bw,
+        run: opts.b,
     };
 
     let mut a_durations = Vec::new();
@@ -224,8 +240,13 @@ fn main() {
     };
 
     loop {
-        run_test(&b, &mut b_durations);
-        run_test(&a, &mut a_durations);
+        if !opts.random_order || rand::random() {
+            run_test(&b, &mut b_durations);
+            run_test(&a, &mut a_durations);
+        } else {
+            run_test(&a, &mut a_durations);
+            run_test(&b, &mut b_durations);
+        }
         if a_durations.len() < 3 || b_durations.len() < 3 {
             continue;
         }

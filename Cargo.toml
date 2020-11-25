@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 structopt = "=0.3"
 atty = "=0.2"
+rand = "0.7.3"
