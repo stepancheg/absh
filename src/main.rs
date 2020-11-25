@@ -134,6 +134,7 @@ struct Stats {
     mean: Duration,
     med: Duration,
     min: Duration,
+    max: Duration,
     std: Duration,
 }
 
@@ -153,6 +154,7 @@ impl Stats {
 
 impl fmt::Display for Stats {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let _ = self.max;
         write!(
             f,
             "n={} mean={} std={} se={} min={} med={}",
@@ -193,6 +195,7 @@ fn stats(durations: &mut [Duration]) -> Stats {
         mean: Duration { millis: avg as u64 },
         med,
         min: durations[0],
+        max: durations.last().unwrap().clone(),
         std: Duration { millis: std as u64 },
     }
 }
