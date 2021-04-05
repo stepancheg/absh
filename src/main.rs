@@ -1,8 +1,5 @@
 use std::fmt;
 use std::io::Write;
-use std::ops::Add;
-use std::ops::Div;
-use std::ops::Sub;
 use std::process::Child;
 use std::process::Command;
 use std::process::Stdio;
@@ -11,6 +8,7 @@ use std::time::Instant;
 use structopt::StructOpt;
 
 use absh::t_table;
+use absh::Duration;
 use absh::TWO_SIDED_95;
 
 struct Test {
@@ -53,55 +51,6 @@ fn spawn_sh(script: &str) -> Child {
         .stdin(Stdio::null())
         .spawn()
         .expect("launch /bin/sh")
-}
-
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
-struct Duration {
-    millis: u64,
-}
-
-impl Sub for Duration {
-    type Output = Duration;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        Duration {
-            millis: self.millis - rhs.millis,
-        }
-    }
-}
-
-impl Add for Duration {
-    type Output = Duration;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Duration {
-            millis: self.millis + rhs.millis,
-        }
-    }
-}
-
-impl Div<u64> for Duration {
-    type Output = Duration;
-
-    fn div(self, rhs: u64) -> Self::Output {
-        Duration {
-            millis: self.millis / rhs,
-        }
-    }
-}
-
-impl Div<Duration> for Duration {
-    type Output = f64;
-
-    fn div(self, rhs: Duration) -> Self::Output {
-        self.millis as f64 / rhs.millis as f64
-    }
-}
-
-impl fmt::Display for Duration {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}.{:03}", self.millis / 1000, self.millis % 1000)
-    }
 }
 
 fn run_test(test: &Test, duration_millis: &mut Vec<Duration>) {
@@ -242,10 +191,11 @@ fn main() {
         false => ("", "", ""),
     };
 
-    eprintln!("Writing absh log to {}", log.name().display());
+    eprintln!("Writing absh data to {}/", log.name().display());
     if let Some(last) = log.last() {
         eprintln!("Log symlink is {}", last.display());
     }
+
     writeln!(&mut log, "random_order: {}", opts.random_order).unwrap();
     for t in &[&a, &b] {
         writeln!(&mut log, "{}.run: {}", t.name, t.run).unwrap();
@@ -296,5 +246,7 @@ fn main() {
             b_a_min,
             b_a_max
         );
+
+        log.write_raw(&a_durations, &b_durations).unwrap();
     }
 }

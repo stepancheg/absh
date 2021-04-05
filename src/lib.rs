@@ -1,5 +1,7 @@
+mod duration;
 mod run_log;
 
+pub use duration::Duration;
 pub use run_log::RunLog;
 
 /// Confidence interval.
