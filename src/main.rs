@@ -1,12 +1,13 @@
-use std::process::Child;
-use std::process::Command;
-use std::process::Stdio;
-
 use std::fmt;
+use std::io::Write;
 use std::ops::Add;
 use std::ops::Div;
 use std::ops::Sub;
+use std::process::Child;
+use std::process::Command;
+use std::process::Stdio;
 use std::time::Instant;
+
 use structopt::StructOpt;
 
 use absh::t_table;
@@ -219,6 +220,8 @@ fn stats(durations: &mut [Duration]) -> Stats {
 fn main() {
     let opts = Opts::from_args();
 
+    let mut log = absh::RunLog::open();
+
     let a = Test {
         name: "A",
         warmup: opts.aw,
@@ -239,6 +242,18 @@ fn main() {
         false => ("", "", ""),
     };
 
+    eprintln!("Writing absh log to {}", log.name().display());
+    if let Some(last) = log.last() {
+        eprintln!("Log symlink is {}", last.display());
+    }
+    writeln!(&mut log, "random_order: {}", opts.random_order).unwrap();
+    for t in &[&a, &b] {
+        writeln!(&mut log, "{}.run: {}", t.name, t.run).unwrap();
+        if !t.warmup.is_empty() {
+            writeln!(&mut log, "{}.warmup: {}", t.name, t.warmup).unwrap();
+        }
+    }
+
     loop {
         if !opts.random_order || rand::random() {
             run_test(&b, &mut b_durations);
@@ -255,6 +270,9 @@ fn main() {
         eprintln!();
         eprintln!("{}A{}: {}", red, reset, a_stats);
         eprintln!("{}B{}: {}", green, reset, b_stats);
+        writeln!(&mut log, "").unwrap();
+        writeln!(&mut log, "A: {}", a_stats).unwrap();
+        writeln!(&mut log, "B: {}", b_stats).unwrap();
 
         let degrees_of_freedom = u64::min(a_stats.count as u64 - 1, b_stats.count as u64 - 1);
         let t_star = t_table(degrees_of_freedom, TWO_SIDED_95);

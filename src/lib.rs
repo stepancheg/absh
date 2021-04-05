@@ -1,3 +1,7 @@
+mod run_log;
+
+pub use run_log::RunLog;
+
 /// Confidence interval.
 #[allow(non_camel_case_types)]
 #[derive(Copy, Clone)]
