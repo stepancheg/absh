@@ -1,3 +1,4 @@
+use std::cmp;
 use std::fmt;
 use std::io::Write;
 use std::process::Child;
@@ -7,8 +8,10 @@ use std::time::Instant;
 
 use structopt::StructOpt;
 
+use absh::bar_char_1_for_range;
 use absh::t_table;
 use absh::Duration;
+use absh::Durations;
 use absh::TWO_SIDED_95;
 
 struct Test {
@@ -53,7 +56,7 @@ fn spawn_sh(script: &str) -> Child {
         .expect("launch /bin/sh")
 }
 
-fn run_test(test: &Test, duration_millis: &mut Vec<Duration>) {
+fn run_test(test: &Test, durations: &mut Durations) {
     eprintln!();
     eprintln!("running test: {}", test.name);
     let warmup_lines = test.warmup.lines().collect::<Vec<_>>();
@@ -92,7 +95,7 @@ fn run_test(test: &Test, duration_millis: &mut Vec<Duration>) {
 
     eprintln!("{} finished in {}", test.name, duration);
 
-    duration_millis.push(duration);
+    durations.push(duration);
 }
 
 struct Stats {
@@ -134,14 +137,10 @@ impl fmt::Display for Stats {
     }
 }
 
-fn stats(durations: &mut [Duration]) -> Stats {
-    assert!(durations.len() >= 3);
-    let durations = &mut durations[1..];
+fn stats(durations: &mut Durations) -> Stats {
+    assert!(durations.len() >= 2);
 
-    // sort to obtain min/median
-    durations.sort();
-
-    let sum: f64 = durations.iter().map(|d| d.millis as f64).sum();
+    let sum: f64 = durations.sum().millis as f64;
     let avg: f64 = sum / durations.len() as f64;
     let s_2 = durations
         .iter()
@@ -150,20 +149,32 @@ fn stats(durations: &mut [Duration]) -> Stats {
         / ((durations.len() - 1) as f64);
     let std = f64::sqrt(s_2);
 
-    let med = if durations.len() % 2 == 0 {
-        (durations[durations.len() / 2 - 1] + durations[durations.len() / 2]) / 2
-    } else {
-        durations[durations.len() / 2]
-    };
+    let med = durations.med();
 
     Stats {
         count: durations.len() as u64,
         mean: Duration { millis: avg as u64 },
         med,
-        min: durations[0],
-        max: durations.last().unwrap().clone(),
+        min: durations.min(),
+        max: durations.max(),
         std: Duration { millis: std as u64 },
     }
+}
+
+fn format_bars(durations: &Durations, width: usize, min: Duration, max: Duration) -> String {
+    let values = if durations.len() < width {
+        durations.raw()
+    } else {
+        &durations.raw()[durations.len() - width..]
+    };
+    let mut bars = String::new();
+    for d in values {
+        bars.push(
+            bar_char_1_for_range(d.millis as f64, min.millis as f64, max.millis as f64)
+                .unwrap_or('X'),
+        );
+    }
+    bars
 }
 
 fn main() {
@@ -182,8 +193,8 @@ fn main() {
         run: opts.b,
     };
 
-    let mut a_durations = Vec::new();
-    let mut b_durations = Vec::new();
+    let mut a_durations = Durations::default();
+    let mut b_durations = Durations::default();
 
     let is_tty = !cfg!(windows) && atty::is(atty::Stream::Stderr);
     let (green, red, reset) = match is_tty {
@@ -204,6 +215,15 @@ fn main() {
         }
     }
 
+    // warm-up, ignore
+    if !opts.random_order || rand::random() {
+        run_test(&b, &mut Durations::default());
+        run_test(&a, &mut Durations::default());
+    } else {
+        run_test(&a, &mut Durations::default());
+        run_test(&b, &mut Durations::default());
+    }
+
     loop {
         if !opts.random_order || rand::random() {
             run_test(&b, &mut b_durations);
@@ -212,7 +232,7 @@ fn main() {
             run_test(&a, &mut a_durations);
             run_test(&b, &mut b_durations);
         }
-        if a_durations.len() < 3 || b_durations.len() < 3 {
+        if a_durations.len() < 2 || b_durations.len() < 2 {
             continue;
         }
         let a_stats = stats(&mut a_durations);
@@ -245,6 +265,15 @@ fn main() {
             b_stats.mean / a_stats.mean,
             b_a_min,
             b_a_max
+        );
+
+        let min = cmp::min(a_durations.min(), b_durations.min());
+        let max = cmp::max(a_durations.max(), b_durations.max());
+
+        eprintln!(
+            "last runs A: [{a_bars:20}], B: [{b_bars:20}]",
+            a_bars = format_bars(&a_durations, 20, min, max),
+            b_bars = format_bars(&b_durations, 20, min, max),
         );
 
         log.write_raw(&a_durations, &b_durations).unwrap();

@@ -1,9 +1,11 @@
 use std::fmt;
+use std::iter::Sum;
 use std::ops::Add;
+use std::ops::AddAssign;
 use std::ops::Div;
 use std::ops::Sub;
 
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Default, Debug)]
 pub struct Duration {
     pub millis: u64,
 }
@@ -28,6 +30,12 @@ impl Add for Duration {
     }
 }
 
+impl AddAssign for Duration {
+    fn add_assign(&mut self, rhs: Self) {
+        self.millis += rhs.millis;
+    }
+}
+
 impl Div<u64> for Duration {
     type Output = Duration;
 
@@ -43,6 +51,26 @@ impl Div<Duration> for Duration {
 
     fn div(self, rhs: Duration) -> Self::Output {
         self.millis as f64 / rhs.millis as f64
+    }
+}
+
+impl Sum for Duration {
+    fn sum<I: Iterator<Item = Duration>>(iter: I) -> Self {
+        let mut sum = Duration::default();
+        for d in iter {
+            sum += d;
+        }
+        sum
+    }
+}
+
+impl<'a> Sum<&'a Duration> for Duration {
+    fn sum<I: Iterator<Item = &'a Duration>>(iter: I) -> Self {
+        let mut sum = Duration::default();
+        for d in iter {
+            sum += *d;
+        }
+        sum
     }
 }
 

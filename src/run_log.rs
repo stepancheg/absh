@@ -7,7 +7,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::time::SystemTime;
 
-use crate::Duration;
+use crate::Durations;
 
 pub struct RunLog {
     name: PathBuf,
@@ -69,9 +69,9 @@ impl RunLog {
         }
     }
 
-    pub fn write_raw(&mut self, a: &[Duration], b: &[Duration]) -> io::Result<()> {
+    pub fn write_raw(&mut self, a: &Durations, b: &Durations) -> io::Result<()> {
         let mut content = String::new();
-        fn join(r: &mut String, ds: &[Duration]) {
+        fn join(r: &mut String, ds: &Durations) {
             for (i, d) in ds.iter().enumerate() {
                 if i != 0 {
                     write!(r, " ").unwrap();
