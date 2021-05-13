@@ -122,7 +122,7 @@ mod test {
     }
 
     #[test]
-    fn test_plot_0_2() {
+    fn test_plot_halves() {
         assert_eq!(
             " ▟█",
             plot_halves(&[3.0, 3.9, 4.1, 5.1, 5.1, 6.0], 3.0, 6.0)

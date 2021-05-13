@@ -209,8 +209,8 @@ fn make_two_distr(
     let a_distr_plot = plot(&a_distr, 0.0, max_height as f64);
     let b_distr_plot = plot(&b_distr, 0.0, max_height as f64);
 
-    let a_distr_halves_plot = plot_halves(&a_distr_halves, 0.0, max_height as f64);
-    let b_distr_halves_plot = plot_halves(&b_distr_halves, 0.0, max_height as f64);
+    let a_distr_halves_plot = plot_halves(&a_distr_halves, 0.0, max_height_halves as f64);
+    let b_distr_halves_plot = plot_halves(&b_distr_halves, 0.0, max_height_halves as f64);
 
     if max_height_halves <= 2 {
         (a_distr_halves_plot, b_distr_halves_plot)
