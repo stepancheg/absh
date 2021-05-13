@@ -226,9 +226,32 @@ fn main() {
         }
         let a_stats = stats(&mut a_durations);
         let b_stats = stats(&mut b_durations);
+
+        let a_stats_str = a_stats.to_string();
+        let b_stats_str = b_stats.to_string();
+
+        let stats_width = cmp::max(a_stats_str.len(), b_stats_str.len());
+
+        let min = cmp::min(a_durations.min(), b_durations.min());
+        let max = cmp::max(a_durations.max(), b_durations.max());
+
+        let a_distr = a_durations.distr(stats_width - 8, min, max);
+        let b_distr = b_durations.distr(stats_width - 8, min, max);
+
+        let max_height =
+            cmp::max(a_distr.iter().max().unwrap(), b_distr.iter().max().unwrap()).clone();
+
+        let a_distr = a_distr.iter().map(|&v| v as f64).collect::<Vec<_>>();
+        let b_distr = b_distr.iter().map(|&v| v as f64).collect::<Vec<_>>();
+
+        let a_distr_plot = plot(&a_distr, 0.0, max_height as f64);
+        let b_distr_plot = plot(&b_distr, 0.0, max_height as f64);
+
         eprintln!();
         eprintln!("{}A{}: {}", red, reset, a_stats);
         eprintln!("{}B{}: {}", green, reset, b_stats);
+        eprintln!("{}A{}: distr=[{}]", red, reset, a_distr_plot);
+        eprintln!("{}B{}: distr=[{}]", green, reset, b_distr_plot);
         writeln!(&mut log, "").unwrap();
         writeln!(&mut log, "A: {}", a_stats).unwrap();
         writeln!(&mut log, "B: {}", b_stats).unwrap();
@@ -254,24 +277,6 @@ fn main() {
             b_stats.mean / a_stats.mean,
             b_a_min,
             b_a_max
-        );
-
-        let min = cmp::min(a_durations.min(), b_durations.min());
-        let max = cmp::max(a_durations.max(), b_durations.max());
-
-        let a_distr = a_durations.distr(24, min, max);
-        let b_distr = b_durations.distr(24, min, max);
-
-        let max_height =
-            cmp::max(a_distr.iter().max().unwrap(), b_distr.iter().max().unwrap()).clone();
-
-        let a_distr = a_distr.iter().map(|&v| v as f64).collect::<Vec<_>>();
-        let b_distr = b_distr.iter().map(|&v| v as f64).collect::<Vec<_>>();
-
-        eprintln!(
-            "Distr: A: [{a_distr_plot}], B: [{b_distr_plot}]",
-            a_distr_plot = plot(&a_distr, 0.0, max_height as f64),
-            b_distr_plot = plot(&b_distr, 0.0, max_height as f64),
         );
 
         log.write_raw(&a_durations, &b_durations).unwrap();
