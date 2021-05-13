@@ -126,12 +126,13 @@ impl fmt::Display for Stats {
         let _ = self.max;
         write!(
             f,
-            "n={n} mean={mean} std={std} se={se} min={min} med={med}",
+            "n={n} mean={mean} std={std} se={se} min={min} max={max} med={med}",
             n = self.count,
             mean = self.mean,
             std = self.std,
             se = self.se(),
             min = self.min,
+            max = self.max,
             med = self.med,
         )
     }
@@ -258,8 +259,8 @@ fn main() {
         let min = cmp::min(a_durations.min(), b_durations.min());
         let max = cmp::max(a_durations.max(), b_durations.max());
 
-        let a_distr = a_durations.distr(20, min, max);
-        let b_distr = b_durations.distr(20, min, max);
+        let a_distr = a_durations.distr(24, min, max);
+        let b_distr = b_durations.distr(24, min, max);
 
         let max_height =
             cmp::max(a_distr.iter().max().unwrap(), b_distr.iter().max().unwrap()).clone();
