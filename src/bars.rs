@@ -27,7 +27,7 @@ pub fn bar_char_1_for_range(value: f64, min: f64, max: f64) -> Option<char> {
     )
 }
 
-pub fn _plot(values: &[f64], min: f64, max: f64) -> String {
+pub fn plot(values: &[f64], min: f64, max: f64) -> String {
     values
         .iter()
         .map(|v| bar_char_for_range(*v, min, max).unwrap_or('X'))

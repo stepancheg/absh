@@ -46,6 +46,19 @@ impl Durations {
     pub fn iter<'a>(&'a self) -> impl Iterator<Item = Duration> + 'a {
         self.raw.iter().cloned()
     }
+
+    pub fn distr(&self, n: usize, min: Duration, max: Duration) -> Vec<usize> {
+        let mut r = vec![0; n];
+        if min != max {
+            for d in &self.raw {
+                let bucket = (((*d - min).millis as f64) / ((max - min).millis as f64)
+                    * ((n - 1) as f64))
+                    .round() as usize;
+                r[bucket.clamp(0, n - 1)] += 1;
+            }
+        }
+        r
+    }
 }
 
 #[cfg(test)]
@@ -66,5 +79,33 @@ mod test {
         assert_eq!(Duration { millis: 60 }, ds.max());
         ds.push(Duration { millis: 10 });
         assert_eq!(Duration { millis: 10 }, ds.min());
+    }
+
+    #[test]
+    fn distr_1() {
+        let mut ds = Durations::default();
+        ds.push(Duration { millis: 10 });
+        assert_eq!(
+            &[1],
+            &ds.distr(1, Duration { millis: 0 }, Duration { millis: 10 })[..]
+        );
+        assert_eq!(
+            &[1],
+            &ds.distr(1, Duration { millis: 10 }, Duration { millis: 20 })[..]
+        );
+    }
+
+    #[test]
+    fn distr_2() {
+        let mut ds = Durations::default();
+        ds.push(Duration { millis: 10 });
+        ds.push(Duration { millis: 14 });
+        ds.push(Duration { millis: 16 });
+        ds.push(Duration { millis: 17 });
+        ds.push(Duration { millis: 20 });
+        assert_eq!(
+            &[2, 3],
+            &ds.distr(2, Duration { millis: 10 }, Duration { millis: 20 })[..]
+        );
     }
 }

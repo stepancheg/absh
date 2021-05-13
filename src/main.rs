@@ -9,6 +9,7 @@ use std::time::Instant;
 use structopt::StructOpt;
 
 use absh::bar_char_1_for_range;
+use absh::plot;
 use absh::t_table;
 use absh::Duration;
 use absh::Durations;
@@ -161,22 +162,6 @@ fn stats(durations: &mut Durations) -> Stats {
     }
 }
 
-fn format_bars(durations: &Durations, width: usize, min: Duration, max: Duration) -> String {
-    let values = if durations.len() < width {
-        durations.raw()
-    } else {
-        &durations.raw()[durations.len() - width..]
-    };
-    let mut bars = String::new();
-    for d in values {
-        bars.push(
-            bar_char_1_for_range(d.millis as f64, min.millis as f64, max.millis as f64)
-                .unwrap_or('X'),
-        );
-    }
-    bars
-}
-
 fn run_pair(
     opts: &Opts,
     a: &Test,
@@ -274,10 +259,19 @@ fn main() {
         let min = cmp::min(a_durations.min(), b_durations.min());
         let max = cmp::max(a_durations.max(), b_durations.max());
 
+        let a_distr = a_durations.distr(20, min, max);
+        let b_distr = b_durations.distr(20, min, max);
+
+        let max_height =
+            cmp::max(a_distr.iter().max().unwrap(), b_distr.iter().max().unwrap()).clone();
+
+        let a_distr = a_distr.iter().map(|&v| v as f64).collect::<Vec<_>>();
+        let b_distr = b_distr.iter().map(|&v| v as f64).collect::<Vec<_>>();
+
         eprintln!(
-            "last runs A: [{a_bars:20}], B: [{b_bars:20}]",
-            a_bars = format_bars(&a_durations, 20, min, max),
-            b_bars = format_bars(&b_durations, 20, min, max),
+            "Distr: A: [{a_distr_plot}], B: [{b_distr_plot}]",
+            a_distr_plot = plot(&a_distr, 0.0, max_height as f64),
+            b_distr_plot = plot(&b_distr, 0.0, max_height as f64),
         );
 
         log.write_raw(&a_durations, &b_durations).unwrap();
