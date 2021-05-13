@@ -8,7 +8,6 @@ use std::time::Instant;
 
 use structopt::StructOpt;
 
-use absh::bar_char_1_for_range;
 use absh::plot;
 use absh::t_table;
 use absh::Duration;
