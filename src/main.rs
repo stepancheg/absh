@@ -177,6 +177,22 @@ fn format_bars(durations: &Durations, width: usize, min: Duration, max: Duration
     bars
 }
 
+fn run_pair(
+    opts: &Opts,
+    a: &Test,
+    b: &Test,
+    mut a_durations: &mut Durations,
+    mut b_durations: &mut Durations,
+) {
+    if !opts.random_order || rand::random() {
+        run_test(&b, &mut b_durations);
+        run_test(&a, &mut a_durations);
+    } else {
+        run_test(&a, &mut a_durations);
+        run_test(&b, &mut b_durations);
+    }
+}
+
 fn main() {
     let opts = Opts::from_args();
 
@@ -184,13 +200,13 @@ fn main() {
 
     let a = Test {
         name: "A",
-        warmup: opts.aw,
-        run: opts.a,
+        warmup: opts.aw.clone(),
+        run: opts.a.clone(),
     };
     let b = Test {
         name: "B",
-        warmup: opts.bw,
-        run: opts.b,
+        warmup: opts.bw.clone(),
+        run: opts.b.clone(),
     };
 
     let mut a_durations = Durations::default();
@@ -216,22 +232,10 @@ fn main() {
     }
 
     // warm-up, ignore
-    if !opts.random_order || rand::random() {
-        run_test(&b, &mut Durations::default());
-        run_test(&a, &mut Durations::default());
-    } else {
-        run_test(&a, &mut Durations::default());
-        run_test(&b, &mut Durations::default());
-    }
+    run_pair(&opts, &a, &b, &mut a_durations, &mut b_durations);
 
     loop {
-        if !opts.random_order || rand::random() {
-            run_test(&b, &mut b_durations);
-            run_test(&a, &mut a_durations);
-        } else {
-            run_test(&a, &mut a_durations);
-            run_test(&b, &mut b_durations);
-        }
+        run_pair(&opts, &a, &b, &mut a_durations, &mut b_durations);
         if a_durations.len() < 2 || b_durations.len() < 2 {
             continue;
         }
