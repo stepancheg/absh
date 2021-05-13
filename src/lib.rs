@@ -3,9 +3,8 @@ mod duration;
 mod durations;
 mod run_log;
 
-pub use bars::bar_char_1_for_range;
-pub use bars::bar_char_for_range;
 pub use bars::plot;
+pub use bars::plot_halves;
 pub use duration::Duration;
 pub use durations::Durations;
 pub use run_log::RunLog;

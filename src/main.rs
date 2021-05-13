@@ -9,6 +9,7 @@ use std::time::Instant;
 use structopt::StructOpt;
 
 use absh::plot;
+use absh::plot_halves;
 use absh::t_table;
 use absh::Duration;
 use absh::Durations;
@@ -178,6 +179,46 @@ fn run_pair(
     }
 }
 
+fn make_two_distr(
+    a_durations: &Durations,
+    b_durations: &Durations,
+    width: usize,
+) -> (String, String) {
+    let min = cmp::min(a_durations.min(), b_durations.min());
+    let max = cmp::max(a_durations.max(), b_durations.max());
+
+    let a_distr_halves = a_durations.distr(width * 2, min, max);
+    let b_distr_halves = b_durations.distr(width * 2, min, max);
+
+    let a_distr = a_durations.distr(width, min, max);
+    let b_distr = b_durations.distr(width, min, max);
+
+    let max_height_halves = cmp::max(
+        a_distr_halves.iter().max().unwrap(),
+        b_distr_halves.iter().max().unwrap(),
+    )
+    .clone();
+    let max_height = cmp::max(a_distr.iter().max().unwrap(), b_distr.iter().max().unwrap()).clone();
+
+    let a_distr = a_distr.iter().map(|&v| v as f64).collect::<Vec<_>>();
+    let b_distr = b_distr.iter().map(|&v| v as f64).collect::<Vec<_>>();
+
+    let a_distr_halves = a_distr_halves.iter().map(|&v| v as f64).collect::<Vec<_>>();
+    let b_distr_halves = b_distr_halves.iter().map(|&v| v as f64).collect::<Vec<_>>();
+
+    let a_distr_plot = plot(&a_distr, 0.0, max_height as f64);
+    let b_distr_plot = plot(&b_distr, 0.0, max_height as f64);
+
+    let a_distr_halves_plot = plot_halves(&a_distr_halves, 0.0, max_height as f64);
+    let b_distr_halves_plot = plot_halves(&b_distr_halves, 0.0, max_height as f64);
+
+    if max_height_halves <= 2 {
+        (a_distr_halves_plot, b_distr_halves_plot)
+    } else {
+        (a_distr_plot, b_distr_plot)
+    }
+}
+
 fn main() {
     let opts = Opts::from_args();
 
@@ -232,26 +273,34 @@ fn main() {
 
         let stats_width = cmp::max(a_stats_str.len(), b_stats_str.len());
 
-        let min = cmp::min(a_durations.min(), b_durations.min());
-        let max = cmp::max(a_durations.max(), b_durations.max());
-
-        let a_distr = a_durations.distr(stats_width - 8, min, max);
-        let b_distr = b_durations.distr(stats_width - 8, min, max);
-
-        let max_height =
-            cmp::max(a_distr.iter().max().unwrap(), b_distr.iter().max().unwrap()).clone();
-
-        let a_distr = a_distr.iter().map(|&v| v as f64).collect::<Vec<_>>();
-        let b_distr = b_distr.iter().map(|&v| v as f64).collect::<Vec<_>>();
-
-        let a_distr_plot = plot(&a_distr, 0.0, max_height as f64);
-        let b_distr_plot = plot(&b_distr, 0.0, max_height as f64);
+        let (a_distr_plot, b_distr_plot) =
+            make_two_distr(&a_durations, &b_durations, stats_width - 8);
 
         eprintln!();
-        eprintln!("{}A{}: {}", red, reset, a_stats);
-        eprintln!("{}B{}: {}", green, reset, b_stats);
-        eprintln!("{}A{}: distr=[{}]", red, reset, a_distr_plot);
-        eprintln!("{}B{}: distr=[{}]", green, reset, b_distr_plot);
+        eprintln!(
+            "{color}A{reset}: {stats}",
+            color = red,
+            reset = reset,
+            stats = a_stats
+        );
+        eprintln!(
+            "{color}B{reset}: {stats}",
+            color = green,
+            reset = reset,
+            stats = b_stats
+        );
+        eprintln!(
+            "{color}A{reset}: distr=[{color}{plot}{reset}]",
+            color = red,
+            reset = reset,
+            plot = a_distr_plot
+        );
+        eprintln!(
+            "{color}B{reset}: distr=[{color}{plot}{reset}]",
+            color = green,
+            reset = reset,
+            plot = b_distr_plot
+        );
         writeln!(&mut log, "").unwrap();
         writeln!(&mut log, "A: {}", a_stats).unwrap();
         writeln!(&mut log, "B: {}", b_stats).unwrap();
