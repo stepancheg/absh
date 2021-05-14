@@ -14,6 +14,7 @@ use absh::t_table;
 use absh::Duration;
 use absh::Durations;
 use absh::TWO_SIDED_95;
+use std::convert::TryInto;
 
 struct Test {
     name: &'static str,
@@ -90,9 +91,7 @@ fn run_test(test: &Test, durations: &mut Durations) {
         return;
     }
 
-    let duration = Duration {
-        millis: start.elapsed().as_millis() as u64,
-    };
+    let duration = Duration::from_nanos(start.elapsed().as_nanos().try_into().unwrap());
 
     eprintln!("{} finished in {}", test.name, duration);
 
@@ -110,15 +109,13 @@ struct Stats {
 
 impl Stats {
     /// sigma^2
-    fn var(&self) -> f64 {
-        let millis = self.std.millis as f64;
+    fn var_millis_sq(&self) -> f64 {
+        let millis = self.std.millis_f64();
         millis * millis
     }
 
     fn se(&self) -> Duration {
-        Duration {
-            millis: (self.std.millis as f64 / f64::sqrt((self.count - 1) as f64)) as u64,
-        }
+        Duration::from_nanos((self.std.nanos() as f64 / f64::sqrt((self.count - 1) as f64)) as u64)
     }
 }
 
@@ -142,24 +139,13 @@ impl fmt::Display for Stats {
 fn stats(durations: &mut Durations) -> Stats {
     assert!(durations.len() >= 2);
 
-    let sum: f64 = durations.sum().millis as f64;
-    let avg: f64 = sum / durations.len() as f64;
-    let s_2 = durations
-        .iter()
-        .map(|d| (d.millis as f64 - avg) * (d.millis as f64 - avg))
-        .sum::<f64>()
-        / ((durations.len() - 1) as f64);
-    let std = f64::sqrt(s_2);
-
-    let med = durations.med();
-
     Stats {
         count: durations.len() as u64,
-        mean: Duration { millis: avg as u64 },
-        med,
+        mean: durations.mean(),
+        med: durations.med(),
         min: durations.min(),
         max: durations.max(),
-        std: Duration { millis: std as u64 },
+        std: durations.std(),
     }
 }
 
@@ -311,15 +297,15 @@ fn main() {
         // Half of a confidence interval
         let conf_h = t_star
             * f64::sqrt(
-                a_stats.var() / (a_stats.count - 1) as f64
-                    + b_stats.var() / (b_stats.count - 1) as f64,
+                a_stats.var_millis_sq() / (a_stats.count - 1) as f64
+                    + b_stats.var_millis_sq() / (b_stats.count - 1) as f64,
             );
 
         // Quarter of a confidence interval
         let conf_q = conf_h / 2.0;
 
-        let b_a_min = (b_stats.mean.millis as f64 - conf_q) / (a_stats.mean.millis as f64 + conf_q);
-        let b_a_max = (b_stats.mean.millis as f64 + conf_q) / (a_stats.mean.millis as f64 - conf_q);
+        let b_a_min = (b_stats.mean.millis_f64() - conf_q) / (a_stats.mean.millis_f64() + conf_q);
+        let b_a_max = (b_stats.mean.millis_f64() + conf_q) / (a_stats.mean.millis_f64() - conf_q);
 
         eprintln!(
             "B/A: {:.3} {:.3}..{:.3} (95% conf)",
