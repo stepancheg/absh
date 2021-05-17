@@ -59,28 +59,28 @@ fn spawn_sh(script: &str) -> Child {
         .expect("launch /bin/sh")
 }
 
-fn run_test(test: &Test, durations: &mut Durations) {
-    eprintln!();
-    eprintln!("running test: {}", test.name);
+fn run_test(log: &mut absh::RunLog, test: &Test, durations: &mut Durations) {
+    writeln!(log.both_log_and_stderr()).unwrap();
+    writeln!(log.both_log_and_stderr(), "running test: {}", test.name).unwrap();
     let warmup_lines = test.warmup.lines().collect::<Vec<_>>();
     if !warmup_lines.is_empty() {
-        eprintln!("running warmup script:");
+        writeln!(log.both_log_and_stderr(), "running warmup script:").unwrap();
         for line in &warmup_lines {
-            eprintln!("    {}", line);
+            writeln!(log.both_log_and_stderr(), "    {}", line).unwrap();
         }
     }
 
     let mut process = spawn_sh(&test.warmup);
     let status = process.wait().unwrap();
     if !status.success() {
-        eprintln!("warmup failed: {}", status);
+        writeln!(log.both_log_and_stderr(), "warmup failed: {}", status).unwrap();
         return;
     }
 
-    eprintln!("running script:");
+    writeln!(log.both_log_and_stderr(), "running script:").unwrap();
     let lines = test.run.lines().collect::<Vec<_>>();
     for line in &lines {
-        eprintln!("    {}", line);
+        writeln!(log.both_log_and_stderr(), "    {}", line).unwrap();
     }
 
     let start = Instant::now();
@@ -88,13 +88,19 @@ fn run_test(test: &Test, durations: &mut Durations) {
     let mut process = spawn_sh(&test.run);
     let status = process.wait().unwrap();
     if !status.success() {
-        eprintln!("script failed: {}", status);
+        writeln!(log.both_log_and_stderr(), "script failed: {}", status).unwrap();
         return;
     }
 
     let duration = Duration::from_nanos(start.elapsed().as_nanos().try_into().unwrap());
 
-    eprintln!("{} finished in {}", test.name, duration);
+    writeln!(
+        log.both_log_and_stderr(),
+        "{} finished in {}",
+        test.name,
+        duration
+    )
+    .unwrap();
 
     durations.push(duration);
 }
@@ -151,6 +157,7 @@ fn stats(durations: &mut Durations) -> Stats {
 }
 
 fn run_pair(
+    log: &mut absh::RunLog,
     opts: &Opts,
     a: &Test,
     b: &Test,
@@ -158,11 +165,11 @@ fn run_pair(
     mut b_durations: &mut Durations,
 ) {
     if !opts.random_order || rand::random() {
-        run_test(&b, &mut b_durations);
-        run_test(&a, &mut a_durations);
+        run_test(log, &b, &mut b_durations);
+        run_test(log, &a, &mut a_durations);
     } else {
-        run_test(&a, &mut a_durations);
-        run_test(&b, &mut b_durations);
+        run_test(log, &a, &mut a_durations);
+        run_test(log, &b, &mut b_durations);
     }
 }
 
@@ -245,10 +252,10 @@ fn main() {
     }
 
     // warm-up, ignore
-    run_pair(&opts, &a, &b, &mut a_durations, &mut b_durations);
+    run_pair(&mut log, &opts, &a, &b, &mut a_durations, &mut b_durations);
 
     loop {
-        run_pair(&opts, &a, &b, &mut a_durations, &mut b_durations);
+        run_pair(&mut log, &opts, &a, &b, &mut a_durations, &mut b_durations);
         if a_durations.len() < 2 || b_durations.len() < 2 {
             continue;
         }
