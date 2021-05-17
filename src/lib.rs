@@ -1,3 +1,4 @@
+mod ansi;
 mod bars;
 mod duration;
 mod durations;

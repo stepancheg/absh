@@ -1,5 +1,6 @@
 use std::cmp;
 use std::fmt;
+use std::fmt::Write as _;
 use std::io::Write;
 use std::process::Child;
 use std::process::Command;
@@ -262,19 +263,23 @@ fn main() {
         let (a_distr_plot, b_distr_plot) =
             make_two_distr(&a_durations, &b_durations, stats_width - 8);
 
-        eprintln!();
-        eprintln!(
+        writeln!(log.both_log_and_stderr(), "").unwrap();
+        writeln!(
+            log.both_log_and_stderr(),
             "{color}A{reset}: {stats}",
             color = red,
             reset = reset,
             stats = a_stats
-        );
-        eprintln!(
+        )
+        .unwrap();
+        writeln!(
+            log.both_log_and_stderr(),
             "{color}B{reset}: {stats}",
             color = green,
             reset = reset,
             stats = b_stats
-        );
+        )
+        .unwrap();
         eprintln!(
             "{color}A{reset}: distr=[{color}{plot}{reset}]",
             color = red,
@@ -287,9 +292,6 @@ fn main() {
             reset = reset,
             plot = b_distr_plot
         );
-        writeln!(&mut log, "").unwrap();
-        writeln!(&mut log, "A: {}", a_stats).unwrap();
-        writeln!(&mut log, "B: {}", b_stats).unwrap();
 
         let degrees_of_freedom = u64::min(a_stats.count as u64 - 1, b_stats.count as u64 - 1);
         let t_star = t_table(degrees_of_freedom, TWO_SIDED_95);
@@ -307,12 +309,14 @@ fn main() {
         let b_a_min = (b_stats.mean.millis_f64() - conf_q) / (a_stats.mean.millis_f64() + conf_q);
         let b_a_max = (b_stats.mean.millis_f64() + conf_q) / (a_stats.mean.millis_f64() - conf_q);
 
-        eprintln!(
+        writeln!(
+            log.both_log_and_stderr(),
             "B/A: {:.3} {:.3}..{:.3} (95% conf)",
             b_stats.mean / a_stats.mean,
             b_a_min,
-            b_a_max
-        );
+            b_a_max,
+        )
+        .unwrap();
 
         log.write_raw(&a_durations, &b_durations).unwrap();
     }
