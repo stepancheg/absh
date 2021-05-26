@@ -1,5 +1,12 @@
 use regex::Regex;
 
+/// Green color
+pub const GREEN: &str = "\x1B[32m";
+/// Red color
+pub const RED: &str = "\x1B[31m";
+/// Reset color
+pub const RESET: &str = "\x1B[0m";
+
 // https://en.wikipedia.org/wiki/ANSI_escape_code#CSIsection
 pub fn strip_csi(s: &str) -> String {
     Regex::new("\x1b\\[[0-9]+[a-zA-Z]")

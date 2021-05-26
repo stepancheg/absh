@@ -9,6 +9,7 @@ use std::time::Instant;
 
 use structopt::StructOpt;
 
+use absh::ansi;
 use absh::plot;
 use absh::plot_halves;
 use absh::t_table;
@@ -234,7 +235,7 @@ fn main() {
 
     let is_tty = !cfg!(windows) && atty::is(atty::Stream::Stderr);
     let (green, red, reset) = match is_tty {
-        true => ("\x1B[32m", "\x1B[31m", "\x1B[0m"),
+        true => (ansi::GREEN, ansi::RED, ansi::RESET),
         false => ("", "", ""),
     };
 

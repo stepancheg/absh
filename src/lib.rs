@@ -1,4 +1,4 @@
-mod ansi;
+pub mod ansi;
 mod bars;
 mod duration;
 mod durations;
