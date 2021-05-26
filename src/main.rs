@@ -46,6 +46,12 @@ struct Opts {
         help = "Ignore the results of the first iteration"
     )]
     ignore_first: bool,
+    #[structopt(
+        short = "n",
+        long = "iterations",
+        help = "Stop after n successful iterations (run forever if not specified)"
+    )]
+    iterations: Option<u32>,
 }
 
 fn spawn_sh(script: &str) -> Child {
@@ -296,6 +302,12 @@ fn main() {
     }
 
     loop {
+        if Some(cmp::min(a_durations.len(), b_durations.len()))
+            == opts.iterations.map(|n| n as usize)
+        {
+            break;
+        }
+
         run_pair(&mut log, &opts, &a, &b, &mut a_durations, &mut b_durations);
         if a_durations.len() < 2 || b_durations.len() < 2 {
             continue;
