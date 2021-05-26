@@ -30,20 +30,10 @@ struct Opts {
     a: String,
     #[structopt(short = "b", help = "B variant shell script")]
     b: String,
-    #[structopt(
-        short = "A",
-        long = "a-warmup",
-        default_value = "",
-        help = "A variant warmup shell script"
-    )]
-    aw: String,
-    #[structopt(
-        short = "B",
-        long = "b-warmup",
-        default_value = "",
-        help = "B variant warmup shell script"
-    )]
-    bw: String,
+    #[structopt(short = "A", long = "a-warmup", help = "A variant warmup shell script")]
+    aw: Option<String>,
+    #[structopt(short = "B", long = "b-warmup", help = "B variant warmup shell script")]
+    bw: Option<String>,
     #[structopt(
         short = "r",
         long = "random-order",
@@ -215,18 +205,18 @@ fn make_two_distr(
 }
 
 fn main() {
-    let opts = Opts::from_args();
+    let opts: Opts = Opts::from_args();
 
     let mut log = absh::RunLog::open();
 
     let a = Test {
         name: "A",
-        warmup: opts.aw.clone(),
+        warmup: opts.aw.clone().unwrap_or(String::new()),
         run: opts.a.clone(),
     };
     let b = Test {
         name: "B",
-        warmup: opts.bw.clone(),
+        warmup: opts.bw.clone().unwrap_or(String::new()),
         run: opts.b.clone(),
     };
 
