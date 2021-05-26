@@ -234,9 +234,9 @@ fn main() {
     let mut b_durations = Durations::default();
 
     let is_tty = !cfg!(windows) && atty::is(atty::Stream::Stderr);
-    let (green, red, reset) = match is_tty {
-        true => (ansi::GREEN, ansi::RED, ansi::RESET),
-        false => ("", "", ""),
+    let (green, red, yellow, reset) = match is_tty {
+        true => (ansi::GREEN, ansi::RED, ansi::YELLOW, ansi::RESET),
+        false => ("", "", "", ""),
     };
 
     eprintln!("Writing absh data to {}/", log.name().display());
@@ -252,8 +252,33 @@ fn main() {
         }
     }
 
+    // TODO: add an option to not ignore the first run
+    writeln!(log.both_log_and_stderr(), "").unwrap();
+    writeln!(
+        log.both_log_and_stderr(),
+        "{yellow}First run pair results will be ignored.{reset}",
+        yellow = yellow,
+        reset = reset
+    )
+    .unwrap();
+
     // warm-up, ignore
-    run_pair(&mut log, &opts, &a, &b, &mut a_durations, &mut b_durations);
+    run_pair(
+        &mut log,
+        &opts,
+        &a,
+        &b,
+        &mut Durations::default(),
+        &mut Durations::default(),
+    );
+
+    writeln!(log.both_log_and_stderr(), "").unwrap();
+    writeln!(log.both_log_and_stderr(), "Now collecting the results.").unwrap();
+    writeln!(
+        log.both_log_and_stderr(),
+        "Statistics will be printed after the second successful iteration."
+    )
+    .unwrap();
 
     loop {
         run_pair(&mut log, &opts, &a, &b, &mut a_durations, &mut b_durations);

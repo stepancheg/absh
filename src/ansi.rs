@@ -4,6 +4,8 @@ use regex::Regex;
 pub const GREEN: &str = "\x1B[32m";
 /// Red color
 pub const RED: &str = "\x1B[31m";
+/// Yellow color
+pub const YELLOW: &str = "\x1B[33m";
 /// Reset color
 pub const RESET: &str = "\x1B[0m";
 
