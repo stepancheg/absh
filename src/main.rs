@@ -40,6 +40,12 @@ struct Opts {
         help = "Randomise test execution order"
     )]
     random_order: bool,
+    #[structopt(
+        short = "i",
+        long = "ignore-first",
+        help = "Ignore the results of the first iteration"
+    )]
+    ignore_first: bool,
 }
 
 fn spawn_sh(script: &str) -> Child {
@@ -242,33 +248,52 @@ fn main() {
         }
     }
 
-    // TODO: add an option to not ignore the first run
-    writeln!(log.both_log_and_stderr(), "").unwrap();
-    writeln!(
-        log.both_log_and_stderr(),
-        "{yellow}First run pair results will be ignored.{reset}",
-        yellow = yellow,
-        reset = reset
-    )
-    .unwrap();
+    if opts.ignore_first {
+        run_pair(
+            &mut log,
+            &opts,
+            &a,
+            &b,
+            &mut Durations::default(),
+            &mut Durations::default(),
+        );
 
-    // warm-up, ignore
-    run_pair(
-        &mut log,
-        &opts,
-        &a,
-        &b,
-        &mut Durations::default(),
-        &mut Durations::default(),
-    );
-
-    writeln!(log.both_log_and_stderr(), "").unwrap();
-    writeln!(log.both_log_and_stderr(), "Now collecting the results.").unwrap();
-    writeln!(
-        log.both_log_and_stderr(),
-        "Statistics will be printed after the second successful iteration."
-    )
-    .unwrap();
+        writeln!(log.both_log_and_stderr(), "").unwrap();
+        writeln!(
+            log.both_log_and_stderr(),
+            "Ignoring first run pair results."
+        )
+        .unwrap();
+        writeln!(log.both_log_and_stderr(), "Now collecting the results.").unwrap();
+        writeln!(
+            log.both_log_and_stderr(),
+            "Statistics will be printed after the second successful iteration."
+        )
+        .unwrap();
+    } else {
+        writeln!(log.both_log_and_stderr(), "").unwrap();
+        writeln!(
+            log.both_log_and_stderr(),
+            "{yellow}First run pair results will be used in statistics.{reset}",
+            yellow = yellow,
+            reset = reset
+        )
+        .unwrap();
+        writeln!(
+            log.both_log_and_stderr(),
+            "{yellow}Results might be skewed.{reset}",
+            yellow = yellow,
+            reset = reset
+        )
+        .unwrap();
+        writeln!(
+            log.both_log_and_stderr(),
+            "{yellow}Use `-i` command line flag to ignore the first iteration.{reset}",
+            yellow = yellow,
+            reset = reset
+        )
+        .unwrap();
+    }
 
     loop {
         run_pair(&mut log, &opts, &a, &b, &mut a_durations, &mut b_durations);
