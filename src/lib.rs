@@ -3,6 +3,7 @@ mod bars;
 mod duration;
 mod durations;
 mod run_log;
+pub mod sh;
 
 pub use bars::plot;
 pub use bars::plot_halves;

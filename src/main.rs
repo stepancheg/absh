@@ -1,10 +1,8 @@
 use std::cmp;
+use std::convert::TryInto;
 use std::fmt;
 use std::fmt::Write as _;
 use std::io::Write;
-use std::process::Child;
-use std::process::Command;
-use std::process::Stdio;
 use std::time::Instant;
 
 use structopt::StructOpt;
@@ -12,11 +10,11 @@ use structopt::StructOpt;
 use absh::ansi;
 use absh::plot;
 use absh::plot_halves;
+use absh::sh::spawn_sh;
 use absh::t_table;
 use absh::Duration;
 use absh::Durations;
 use absh::TWO_SIDED_95;
-use std::convert::TryInto;
 
 struct Test {
     name: &'static str,
@@ -52,14 +50,6 @@ struct Opts {
         help = "Stop after n successful iterations (run forever if not specified)"
     )]
     iterations: Option<u32>,
-}
-
-fn spawn_sh(script: &str) -> Child {
-    Command::new("/bin/sh")
-        .args(&["-ec", &script])
-        .stdin(Stdio::null())
-        .spawn()
-        .expect("launch /bin/sh")
 }
 
 fn run_test(log: &mut absh::RunLog, test: &Test, durations: &mut Durations) {
