@@ -162,7 +162,10 @@ fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) {
     }
 }
 
-fn make_two_distr(a_durations: &Durations, b_durations: &Durations, width: usize) -> Vec<String> {
+fn make_two_distr(durations: &[&Durations], width: usize) -> Vec<String> {
+    let a_durations = durations[0];
+    let b_durations = durations[1];
+
     let min = cmp::min(a_durations.min(), b_durations.min());
     let max = cmp::max(a_durations.max(), b_durations.max());
 
@@ -300,12 +303,13 @@ fn main() {
         }
 
         let stats: Vec<_> = tests.iter_mut().map(|t| stats(&mut t.durations)).collect();
+        let durations: Vec<_> = tests.iter().map(|t| &t.durations).collect();
 
         let stats_str: Vec<_> = stats.iter().map(|s: &Stats| s.to_string()).collect();
 
         let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
 
-        let distr_plots = make_two_distr(&tests[0].durations, &tests[1].durations, stats_width - 8);
+        let distr_plots = make_two_distr(&durations, stats_width - 8);
 
         writeln!(log.both_log_and_stderr(), "").unwrap();
         for index in 0..tests.len() {
@@ -358,7 +362,6 @@ fn main() {
         )
         .unwrap();
 
-        let durations: Vec<_> = tests.iter().map(|t| &t.durations).collect();
         log.write_raw(&durations).unwrap();
     }
 }
