@@ -15,6 +15,11 @@ impl Durations {
         // self.sorted.sort();
     }
 
+    pub fn clear(&mut self) {
+        self.raw.clear();
+        self.sorted.clear();
+    }
+
     pub fn raw(&self) -> &[Duration] {
         &self.raw
     }

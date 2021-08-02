@@ -20,6 +20,7 @@ struct Test {
     name: &'static str,
     warmup: String,
     run: String,
+    durations: Durations,
 }
 
 #[derive(StructOpt, Debug)]
@@ -52,7 +53,7 @@ struct Opts {
     iterations: Option<u32>,
 }
 
-fn run_test(log: &mut absh::RunLog, test: &Test, durations: &mut Durations) {
+fn run_test(log: &mut absh::RunLog, test: &mut Test) {
     writeln!(log.both_log_and_stderr()).unwrap();
     writeln!(log.both_log_and_stderr(), "running test: {}", test.name).unwrap();
     let warmup_lines = test.warmup.lines().collect::<Vec<_>>();
@@ -95,7 +96,7 @@ fn run_test(log: &mut absh::RunLog, test: &Test, durations: &mut Durations) {
     )
     .unwrap();
 
-    durations.push(duration);
+    test.durations.push(duration);
 }
 
 struct Stats {
@@ -149,20 +150,13 @@ fn stats(durations: &mut Durations) -> Stats {
     }
 }
 
-fn run_pair(
-    log: &mut absh::RunLog,
-    opts: &Opts,
-    a: &Test,
-    b: &Test,
-    mut a_durations: &mut Durations,
-    mut b_durations: &mut Durations,
-) {
+fn run_pair(log: &mut absh::RunLog, opts: &Opts, a: &mut Test, b: &mut Test) {
     if !opts.random_order || rand::random() {
-        run_test(log, &b, &mut b_durations);
-        run_test(log, &a, &mut a_durations);
+        run_test(log, b);
+        run_test(log, a);
     } else {
-        run_test(log, &a, &mut a_durations);
-        run_test(log, &b, &mut b_durations);
+        run_test(log, a);
+        run_test(log, b);
     }
 }
 
@@ -211,19 +205,18 @@ fn main() {
 
     let mut log = absh::RunLog::open();
 
-    let a = Test {
+    let mut a = Test {
         name: "A",
         warmup: opts.aw.clone().unwrap_or(String::new()),
         run: opts.a.clone(),
+        durations: Durations::default(),
     };
-    let b = Test {
+    let mut b = Test {
         name: "B",
         warmup: opts.bw.clone().unwrap_or(String::new()),
         run: opts.b.clone(),
+        durations: Durations::default(),
     };
-
-    let mut a_durations = Durations::default();
-    let mut b_durations = Durations::default();
 
     let is_tty = !cfg!(windows) && atty::is(atty::Stream::Stderr);
     let (green, red, yellow, reset) = match is_tty {
@@ -245,14 +238,10 @@ fn main() {
     }
 
     if opts.ignore_first {
-        run_pair(
-            &mut log,
-            &opts,
-            &a,
-            &b,
-            &mut Durations::default(),
-            &mut Durations::default(),
-        );
+        run_pair(&mut log, &opts, &mut a, &mut b);
+
+        a.durations.clear();
+        b.durations.clear();
 
         writeln!(log.both_log_and_stderr(), "").unwrap();
         writeln!(
@@ -292,18 +281,18 @@ fn main() {
     }
 
     loop {
-        if Some(cmp::min(a_durations.len(), b_durations.len()))
+        if Some(cmp::min(a.durations.len(), b.durations.len()))
             == opts.iterations.map(|n| n as usize)
         {
             break;
         }
 
-        run_pair(&mut log, &opts, &a, &b, &mut a_durations, &mut b_durations);
-        if a_durations.len() < 2 || b_durations.len() < 2 {
+        run_pair(&mut log, &opts, &mut a, &mut b);
+        if a.durations.len() < 2 || b.durations.len() < 2 {
             continue;
         }
-        let a_stats = stats(&mut a_durations);
-        let b_stats = stats(&mut b_durations);
+        let a_stats = stats(&mut a.durations);
+        let b_stats = stats(&mut b.durations);
 
         let a_stats_str = a_stats.to_string();
         let b_stats_str = b_stats.to_string();
@@ -311,7 +300,7 @@ fn main() {
         let stats_width = cmp::max(a_stats_str.len(), b_stats_str.len());
 
         let (a_distr_plot, b_distr_plot) =
-            make_two_distr(&a_durations, &b_durations, stats_width - 8);
+            make_two_distr(&a.durations, &b.durations, stats_width - 8);
 
         writeln!(log.both_log_and_stderr(), "").unwrap();
         writeln!(
@@ -368,6 +357,6 @@ fn main() {
         )
         .unwrap();
 
-        log.write_raw(&a_durations, &b_durations).unwrap();
+        log.write_raw(&a.durations, &b.durations).unwrap();
     }
 }
