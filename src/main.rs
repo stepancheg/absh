@@ -21,6 +21,7 @@ struct Test {
     name: &'static str,
     warmup: String,
     run: String,
+    color_if_tty: &'static str,
     durations: Durations,
 }
 
@@ -210,21 +211,28 @@ fn main() {
         name: "A",
         warmup: opts.aw.clone().unwrap_or(String::new()),
         run: opts.a.clone(),
+        color_if_tty: ansi::RED,
         durations: Durations::default(),
     };
     let b = Test {
         name: "B",
         warmup: opts.bw.clone().unwrap_or(String::new()),
         run: opts.b.clone(),
+        color_if_tty: ansi::GREEN,
         durations: Durations::default(),
     };
 
     let mut tests = vec![a, b];
 
     let is_tty = !cfg!(windows) && atty::is(atty::Stream::Stderr);
-    let (green, red, yellow, reset) = match is_tty {
-        true => (ansi::GREEN, ansi::RED, ansi::YELLOW, ansi::RESET),
-        false => ("", "", "", ""),
+    let (yellow, reset) = match is_tty {
+        true => (ansi::YELLOW, ansi::RESET),
+        false => ("", ""),
+    };
+
+    let test_color = match is_tty {
+        true => |t: &Test| t.color_if_tty,
+        false => |_: &Test| "",
     };
 
     eprintln!("Writing absh data to {}/", log.name().display());
@@ -294,11 +302,11 @@ fn main() {
         if min_duration_len < 2 {
             continue;
         }
-        let a_stats = stats(&mut tests[0].durations);
-        let b_stats = stats(&mut tests[1].durations);
 
-        let a_stats_str = a_stats.to_string();
-        let b_stats_str = b_stats.to_string();
+        let stats: Vec<_> = tests.iter_mut().map(|t| stats(&mut t.durations)).collect();
+
+        let a_stats_str = stats[0].to_string();
+        let b_stats_str = stats[1].to_string();
 
         let stats_width = cmp::max(a_stats_str.len(), b_stats_str.len());
 
@@ -309,52 +317,52 @@ fn main() {
         writeln!(
             log.both_log_and_stderr(),
             "{color}A{reset}: {stats}",
-            color = red,
+            color = test_color(&tests[0]),
             reset = reset,
-            stats = a_stats
+            stats = stats[0],
         )
         .unwrap();
         writeln!(
             log.both_log_and_stderr(),
             "{color}B{reset}: {stats}",
-            color = green,
+            color = test_color(&tests[1]),
             reset = reset,
-            stats = b_stats
+            stats = stats[1],
         )
         .unwrap();
         eprintln!(
             "{color}A{reset}: distr=[{color}{plot}{reset}]",
-            color = red,
+            color = test_color(&tests[0]),
             reset = reset,
             plot = a_distr_plot
         );
         eprintln!(
             "{color}B{reset}: distr=[{color}{plot}{reset}]",
-            color = green,
+            color = test_color(&tests[1]),
             reset = reset,
             plot = b_distr_plot
         );
 
-        let degrees_of_freedom = u64::min(a_stats.count as u64 - 1, b_stats.count as u64 - 1);
+        let degrees_of_freedom = u64::min(stats[0].count as u64 - 1, stats[1].count as u64 - 1);
         let t_star = t_table(degrees_of_freedom, TWO_SIDED_95);
 
         // Half of a confidence interval
         let conf_h = t_star
             * f64::sqrt(
-                a_stats.var_millis_sq() / (a_stats.count - 1) as f64
-                    + b_stats.var_millis_sq() / (b_stats.count - 1) as f64,
+                stats[0].var_millis_sq() / (stats[0].count - 1) as f64
+                    + stats[1].var_millis_sq() / (stats[1].count - 1) as f64,
             );
 
         // Quarter of a confidence interval
         let conf_q = conf_h / 2.0;
 
-        let b_a_min = (b_stats.mean.millis_f64() - conf_q) / (a_stats.mean.millis_f64() + conf_q);
-        let b_a_max = (b_stats.mean.millis_f64() + conf_q) / (a_stats.mean.millis_f64() - conf_q);
+        let b_a_min = (stats[1].mean.millis_f64() - conf_q) / (stats[0].mean.millis_f64() + conf_q);
+        let b_a_max = (stats[1].mean.millis_f64() + conf_q) / (stats[0].mean.millis_f64() - conf_q);
 
         writeln!(
             log.both_log_and_stderr(),
             "B/A: {:.3} {:.3}..{:.3} (95% conf)",
-            b_stats.mean / a_stats.mean,
+            stats[1].mean / stats[0].mean,
             b_a_min,
             b_a_max,
         )
