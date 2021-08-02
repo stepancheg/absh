@@ -312,35 +312,33 @@ fn main() {
         let (a_distr_plot, b_distr_plot) =
             make_two_distr(&tests[0].durations, &tests[1].durations, stats_width - 8);
 
+        let distr_plots = vec![a_distr_plot, b_distr_plot];
+
         writeln!(log.both_log_and_stderr(), "").unwrap();
-        writeln!(
-            log.both_log_and_stderr(),
-            "{color}A{reset}: {stats}",
-            color = test_color(&tests[0]),
-            reset = reset,
-            stats = stats[0],
-        )
-        .unwrap();
-        writeln!(
-            log.both_log_and_stderr(),
-            "{color}B{reset}: {stats}",
-            color = test_color(&tests[1]),
-            reset = reset,
-            stats = stats[1],
-        )
-        .unwrap();
-        eprintln!(
-            "{color}A{reset}: distr=[{color}{plot}{reset}]",
-            color = test_color(&tests[0]),
-            reset = reset,
-            plot = a_distr_plot
-        );
-        eprintln!(
-            "{color}B{reset}: distr=[{color}{plot}{reset}]",
-            color = test_color(&tests[1]),
-            reset = reset,
-            plot = b_distr_plot
-        );
+        for index in 0..tests.len() {
+            let test = &tests[index];
+            let stats = &stats[index];
+            writeln!(
+                log.both_log_and_stderr(),
+                "{color}{name}{reset}: {stats}",
+                name = test.name,
+                color = test_color(test),
+                reset = reset,
+                stats = stats,
+            )
+            .unwrap();
+        }
+        for index in 0..tests.len() {
+            let test = &tests[index];
+            let distr_plot = &distr_plots[index];
+            eprintln!(
+                "{color}{name}{reset}: distr=[{color}{plot}{reset}]",
+                name = test.name,
+                color = test_color(test),
+                reset = reset,
+                plot = distr_plot,
+            );
+        }
 
         let degrees_of_freedom = u64::min(stats[0].count as u64 - 1, stats[1].count as u64 - 1);
         let t_star = t_table(degrees_of_freedom, TWO_SIDED_95);
