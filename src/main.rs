@@ -162,11 +162,7 @@ fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) {
     }
 }
 
-fn make_two_distr(
-    a_durations: &Durations,
-    b_durations: &Durations,
-    width: usize,
-) -> (String, String) {
+fn make_two_distr(a_durations: &Durations, b_durations: &Durations, width: usize) -> Vec<String> {
     let min = cmp::min(a_durations.min(), b_durations.min());
     let max = cmp::max(a_durations.max(), b_durations.max());
 
@@ -196,9 +192,9 @@ fn make_two_distr(
     let b_distr_halves_plot = plot_halves(&b_distr_halves, 0.0, max_height_halves as f64);
 
     if max_height_halves <= 2 {
-        (a_distr_halves_plot, b_distr_halves_plot)
+        vec![a_distr_halves_plot, b_distr_halves_plot]
     } else {
-        (a_distr_plot, b_distr_plot)
+        vec![a_distr_plot, b_distr_plot]
     }
 }
 
@@ -309,10 +305,7 @@ fn main() {
 
         let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
 
-        let (a_distr_plot, b_distr_plot) =
-            make_two_distr(&tests[0].durations, &tests[1].durations, stats_width - 8);
-
-        let distr_plots = vec![a_distr_plot, b_distr_plot];
+        let distr_plots = make_two_distr(&tests[0].durations, &tests[1].durations, stats_width - 8);
 
         writeln!(log.both_log_and_stderr(), "").unwrap();
         for index in 0..tests.len() {
