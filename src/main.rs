@@ -1,4 +1,3 @@
-use std::cmp;
 use std::convert::TryInto;
 use std::fmt;
 use std::fmt::Write as _;
@@ -163,30 +162,40 @@ fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) {
 }
 
 fn make_two_distr(durations: &[&Durations], width: usize) -> Vec<String> {
-    let a_durations = durations[0];
-    let b_durations = durations[1];
-
     let min = durations.iter().map(|d| d.min()).min().unwrap();
     let max = durations.iter().map(|d| d.max()).max().unwrap();
 
-    let a_distr_halves = a_durations.distr(width * 2, min, max);
-    let b_distr_halves = b_durations.distr(width * 2, min, max);
+    let distr_halves: Vec<_> = durations
+        .iter()
+        .map(|d| d.distr(width * 2, min, max))
+        .collect();
 
-    let a_distr = a_durations.distr(width, min, max);
-    let b_distr = b_durations.distr(width, min, max);
+    let distr: Vec<_> = durations.iter().map(|d| d.distr(width, min, max)).collect();
 
-    let max_height_halves = cmp::max(
-        a_distr_halves.iter().max().unwrap(),
-        b_distr_halves.iter().max().unwrap(),
-    )
-    .clone();
-    let max_height = cmp::max(a_distr.iter().max().unwrap(), b_distr.iter().max().unwrap()).clone();
+    let max_height_halves = distr_halves
+        .iter()
+        .map(|h| h.iter().max().unwrap())
+        .max()
+        .unwrap()
+        .clone();
+    let max_height = distr
+        .iter()
+        .map(|h| h.iter().max().unwrap())
+        .max()
+        .unwrap()
+        .clone();
 
-    let a_distr = a_distr.iter().map(|&v| v as f64).collect::<Vec<_>>();
-    let b_distr = b_distr.iter().map(|&v| v as f64).collect::<Vec<_>>();
+    let a_distr = distr[0].iter().map(|&v| v as f64).collect::<Vec<_>>();
+    let b_distr = distr[1].iter().map(|&v| v as f64).collect::<Vec<_>>();
 
-    let a_distr_halves = a_distr_halves.iter().map(|&v| v as f64).collect::<Vec<_>>();
-    let b_distr_halves = b_distr_halves.iter().map(|&v| v as f64).collect::<Vec<_>>();
+    let a_distr_halves = distr_halves[0]
+        .iter()
+        .map(|&v| v as f64)
+        .collect::<Vec<_>>();
+    let b_distr_halves = distr_halves[1]
+        .iter()
+        .map(|&v| v as f64)
+        .collect::<Vec<_>>();
 
     let a_distr_plot = plot(&a_distr, 0.0, max_height as f64);
     let b_distr_plot = plot(&b_distr, 0.0, max_height as f64);
