@@ -80,7 +80,7 @@ impl RunLog {
         BothLogAndStderr { log: self }
     }
 
-    pub fn write_raw(&mut self, a: &Durations, b: &Durations) -> io::Result<()> {
+    pub fn write_raw(&mut self, durations: &[&Durations]) -> io::Result<()> {
         let mut content = String::new();
         fn join(r: &mut String, ds: &Durations) {
             for (i, d) in ds.iter().enumerate() {
@@ -92,8 +92,9 @@ impl RunLog {
             write!(r, "\n").unwrap();
         }
 
-        join(&mut content, a);
-        join(&mut content, b);
+        for d in durations {
+            join(&mut content, d);
+        }
 
         fs::write(&self.raw, content)
     }

@@ -358,7 +358,7 @@ fn main() {
         )
         .unwrap();
 
-        log.write_raw(&tests[0].durations, &tests[1].durations)
-            .unwrap();
+        let durations: Vec<_> = tests.iter().map(|t| &t.durations).collect();
+        log.write_raw(&durations).unwrap();
     }
 }
