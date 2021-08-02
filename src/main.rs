@@ -305,10 +305,9 @@ fn main() {
 
         let stats: Vec<_> = tests.iter_mut().map(|t| stats(&mut t.durations)).collect();
 
-        let a_stats_str = stats[0].to_string();
-        let b_stats_str = stats[1].to_string();
+        let stats_str: Vec<_> = stats.iter().map(|s: &Stats| s.to_string()).collect();
 
-        let stats_width = cmp::max(a_stats_str.len(), b_stats_str.len());
+        let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
 
         let (a_distr_plot, b_distr_plot) =
             make_two_distr(&tests[0].durations, &tests[1].durations, stats_width - 8);
