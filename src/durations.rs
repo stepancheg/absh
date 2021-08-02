@@ -1,5 +1,15 @@
 use crate::Duration;
 
+pub struct Distr {
+    pub counts: Vec<u64>,
+}
+
+impl Distr {
+    pub fn max(&self) -> u64 {
+        self.counts.iter().max().cloned().unwrap_or(0)
+    }
+}
+
 #[derive(Default)]
 pub struct Durations {
     raw: Vec<Duration>,
@@ -76,17 +86,17 @@ impl Durations {
         self.raw.iter().cloned()
     }
 
-    pub fn distr(&self, n: usize, min: Duration, max: Duration) -> Vec<usize> {
-        let mut r = vec![0; n];
+    pub fn distr(&self, n: usize, min: Duration, max: Duration) -> Distr {
+        let mut counts = vec![0; n];
         if min != max {
             for d in &self.raw {
                 let bucket = (((*d - min).nanos() as f64) / ((max - min).nanos() as f64)
                     * ((n - 1) as f64))
                     .round() as usize;
-                r[bucket.clamp(0, n - 1)] += 1;
+                counts[bucket.clamp(0, n - 1)] += 1;
             }
         }
-        r
+        Distr { counts }
     }
 }
 

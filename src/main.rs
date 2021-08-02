@@ -172,27 +172,27 @@ fn make_two_distr(durations: &[&Durations], width: usize) -> Vec<String> {
 
     let distr: Vec<_> = durations.iter().map(|d| d.distr(width, min, max)).collect();
 
-    let max_height_halves = distr_halves
-        .iter()
-        .map(|h| h.iter().max().unwrap())
-        .max()
-        .unwrap()
-        .clone();
-    let max_height = distr
-        .iter()
-        .map(|h| h.iter().max().unwrap())
-        .max()
-        .unwrap()
-        .clone();
+    let max_height_halves = distr_halves.iter().map(|h| h.max()).max().unwrap().clone();
+    let max_height = distr.iter().map(|h| h.max()).max().unwrap().clone();
 
-    let a_distr = distr[0].iter().map(|&v| v as f64).collect::<Vec<_>>();
-    let b_distr = distr[1].iter().map(|&v| v as f64).collect::<Vec<_>>();
+    let a_distr = distr[0]
+        .counts
+        .iter()
+        .map(|&v| v as f64)
+        .collect::<Vec<_>>();
+    let b_distr = distr[1]
+        .counts
+        .iter()
+        .map(|&v| v as f64)
+        .collect::<Vec<_>>();
 
     let a_distr_halves = distr_halves[0]
+        .counts
         .iter()
         .map(|&v| v as f64)
         .collect::<Vec<_>>();
     let b_distr_halves = distr_halves[1]
+        .counts
         .iter()
         .map(|&v| v as f64)
         .collect::<Vec<_>>();
