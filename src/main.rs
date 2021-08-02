@@ -166,8 +166,8 @@ fn make_two_distr(durations: &[&Durations], width: usize) -> Vec<String> {
     let a_durations = durations[0];
     let b_durations = durations[1];
 
-    let min = cmp::min(a_durations.min(), b_durations.min());
-    let max = cmp::max(a_durations.max(), b_durations.max());
+    let min = durations.iter().map(|d| d.min()).min().unwrap();
+    let max = durations.iter().map(|d| d.max()).max().unwrap();
 
     let a_distr_halves = a_durations.distr(width * 2, min, max);
     let b_distr_halves = b_durations.distr(width * 2, min, max);
