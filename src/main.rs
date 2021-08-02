@@ -15,6 +15,7 @@ use absh::t_table;
 use absh::Duration;
 use absh::Durations;
 use absh::TWO_SIDED_95;
+use rand::prelude::SliceRandom;
 
 struct Test {
     name: &'static str,
@@ -150,13 +151,13 @@ fn stats(durations: &mut Durations) -> Stats {
     }
 }
 
-fn run_pair(log: &mut absh::RunLog, opts: &Opts, a: &mut Test, b: &mut Test) {
-    if !opts.random_order || rand::random() {
-        run_test(log, b);
-        run_test(log, a);
-    } else {
-        run_test(log, a);
-        run_test(log, b);
+fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [&mut Test]) {
+    let mut indices: Vec<usize> = (0..tests.len()).collect();
+    if opts.random_order {
+        indices.shuffle(&mut rand::thread_rng());
+    }
+    for &index in &indices {
+        run_test(log, tests[index]);
     }
 }
 
@@ -238,7 +239,7 @@ fn main() {
     }
 
     if opts.ignore_first {
-        run_pair(&mut log, &opts, &mut a, &mut b);
+        run_pair(&mut log, &opts, &mut [&mut a, &mut b]);
 
         a.durations.clear();
         b.durations.clear();
@@ -287,7 +288,7 @@ fn main() {
             break;
         }
 
-        run_pair(&mut log, &opts, &mut a, &mut b);
+        run_pair(&mut log, &opts, &mut [&mut a, &mut b]);
         if a.durations.len() < 2 || b.durations.len() < 2 {
             continue;
         }
