@@ -29,7 +29,7 @@ struct Opts {
     #[structopt(short = "a", help = "A variant shell script")]
     a: String,
     #[structopt(short = "b", help = "B variant shell script")]
-    b: String,
+    b: Option<String>,
     #[structopt(short = "A", long = "a-warmup", help = "A variant warmup shell script")]
     aw: Option<String>,
     #[structopt(short = "B", long = "b-warmup", help = "B variant warmup shell script")]
@@ -200,22 +200,23 @@ fn main() {
 
     let mut log = absh::RunLog::open();
 
-    let a = Test {
+    let mut tests = Vec::new();
+    tests.push(Test {
         name: "A",
         warmup: opts.aw.clone().unwrap_or(String::new()),
         run: opts.a.clone(),
         color_if_tty: ansi::RED,
         durations: Durations::default(),
-    };
-    let b = Test {
-        name: "B",
-        warmup: opts.bw.clone().unwrap_or(String::new()),
-        run: opts.b.clone(),
-        color_if_tty: ansi::GREEN,
-        durations: Durations::default(),
-    };
-
-    let mut tests = vec![a, b];
+    });
+    if let Some(b) = opts.b.clone() {
+        tests.push(Test {
+            name: "B",
+            warmup: opts.bw.clone().unwrap_or(String::new()),
+            run: b,
+            color_if_tty: ansi::GREEN,
+            durations: Durations::default(),
+        });
+    }
 
     let is_tty = !cfg!(windows) && atty::is(atty::Stream::Stderr);
     let (yellow, reset) = match is_tty {
@@ -331,30 +332,34 @@ fn main() {
             );
         }
 
-        let degrees_of_freedom = u64::min(stats[0].count as u64 - 1, stats[1].count as u64 - 1);
-        let t_star = t_table(degrees_of_freedom, TWO_SIDED_95);
+        if tests.len() == 2 {
+            let degrees_of_freedom = u64::min(stats[0].count as u64 - 1, stats[1].count as u64 - 1);
+            let t_star = t_table(degrees_of_freedom, TWO_SIDED_95);
 
-        // Half of a confidence interval
-        let conf_h = t_star
-            * f64::sqrt(
-                stats[0].var_millis_sq() / (stats[0].count - 1) as f64
-                    + stats[1].var_millis_sq() / (stats[1].count - 1) as f64,
-            );
+            // Half of a confidence interval
+            let conf_h = t_star
+                * f64::sqrt(
+                    stats[0].var_millis_sq() / (stats[0].count - 1) as f64
+                        + stats[1].var_millis_sq() / (stats[1].count - 1) as f64,
+                );
 
-        // Quarter of a confidence interval
-        let conf_q = conf_h / 2.0;
+            // Quarter of a confidence interval
+            let conf_q = conf_h / 2.0;
 
-        let b_a_min = (stats[1].mean.millis_f64() - conf_q) / (stats[0].mean.millis_f64() + conf_q);
-        let b_a_max = (stats[1].mean.millis_f64() + conf_q) / (stats[0].mean.millis_f64() - conf_q);
+            let b_a_min =
+                (stats[1].mean.millis_f64() - conf_q) / (stats[0].mean.millis_f64() + conf_q);
+            let b_a_max =
+                (stats[1].mean.millis_f64() + conf_q) / (stats[0].mean.millis_f64() - conf_q);
 
-        writeln!(
-            log.both_log_and_stderr(),
-            "B/A: {:.3} {:.3}..{:.3} (95% conf)",
-            stats[1].mean / stats[0].mean,
-            b_a_min,
-            b_a_max,
-        )
-        .unwrap();
+            writeln!(
+                log.both_log_and_stderr(),
+                "B/A: {:.3} {:.3}..{:.3} (95% conf)",
+                stats[1].mean / stats[0].mean,
+                b_a_min,
+                b_a_max,
+            )
+            .unwrap();
+        }
 
         log.write_raw(&durations).unwrap();
     }
