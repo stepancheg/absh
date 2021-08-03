@@ -178,16 +178,20 @@ fn make_two_distr(durations: &[&Durations], width: usize) -> Vec<String> {
     let distr: Vec<_> = distr.iter().map(|d| d.to_f64()).collect();
     let distr_halves: Vec<_> = distr_halves.iter().map(|d| d.to_f64()).collect();
 
-    let a_distr_plot = plot(&distr[0], 0.0, max_height as f64);
-    let b_distr_plot = plot(&distr[1], 0.0, max_height as f64);
+    let distr_plots = distr
+        .iter()
+        .map(|d| plot(d, 0.0, max_height as f64))
+        .collect();
 
-    let a_distr_halves_plot = plot_halves(&distr_halves[0], 0.0, max_height_halves as f64);
-    let b_distr_halves_plot = plot_halves(&distr_halves[1], 0.0, max_height_halves as f64);
+    let distr_halves_plots = distr_halves
+        .iter()
+        .map(|d| plot_halves(d, 0.0, max_height_halves as f64))
+        .collect();
 
     if max_height_halves <= 2 {
-        vec![a_distr_halves_plot, b_distr_halves_plot]
+        distr_halves_plots
     } else {
-        vec![a_distr_plot, b_distr_plot]
+        distr_plots
     }
 }
 
