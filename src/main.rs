@@ -30,10 +30,18 @@ struct Opts {
     a: String,
     #[structopt(short = "b", help = "B variant shell script")]
     b: Option<String>,
+    #[structopt(short = "c", help = "C variant shell script")]
+    c: Option<String>,
+    #[structopt(short = "d", help = "D variant shell script")]
+    d: Option<String>,
     #[structopt(short = "A", long = "a-warmup", help = "A variant warmup shell script")]
     aw: Option<String>,
     #[structopt(short = "B", long = "b-warmup", help = "B variant warmup shell script")]
     bw: Option<String>,
+    #[structopt(short = "C", long = "c-warmup", help = "C variant warmup shell script")]
+    cw: Option<String>,
+    #[structopt(short = "D", long = "d-warmup", help = "D variant warmup shell script")]
+    dw: Option<String>,
     #[structopt(
         short = "r",
         long = "random-order",
@@ -217,6 +225,24 @@ fn main() {
             durations: Durations::default(),
         });
     }
+    if let Some(c) = opts.c.clone() {
+        tests.push(Test {
+            name: "C",
+            warmup: opts.cw.clone().unwrap_or(String::new()),
+            run: c,
+            color_if_tty: ansi::BLUE,
+            durations: Durations::default(),
+        });
+    }
+    if let Some(d) = opts.d.clone() {
+        tests.push(Test {
+            name: "D",
+            warmup: opts.dw.clone().unwrap_or(String::new()),
+            run: d,
+            color_if_tty: ansi::MAGENTA,
+            durations: Durations::default(),
+        });
+    }
 
     let is_tty = !cfg!(windows) && atty::is(atty::Stream::Stderr);
     let (yellow, reset) = match is_tty {
@@ -332,33 +358,38 @@ fn main() {
             );
         }
 
-        if tests.len() == 2 {
-            let degrees_of_freedom = u64::min(stats[0].count as u64 - 1, stats[1].count as u64 - 1);
-            let t_star = t_table(degrees_of_freedom, TWO_SIDED_95);
+        if tests.len() >= 2 {
+            for b_index in 1..tests.len() {
+                let degrees_of_freedom =
+                    u64::min(stats[0].count as u64 - 1, stats[b_index].count as u64 - 1);
+                let t_star = t_table(degrees_of_freedom, TWO_SIDED_95);
 
-            // Half of a confidence interval
-            let conf_h = t_star
-                * f64::sqrt(
-                    stats[0].var_millis_sq() / (stats[0].count - 1) as f64
-                        + stats[1].var_millis_sq() / (stats[1].count - 1) as f64,
-                );
+                // Half of a confidence interval
+                let conf_h = t_star
+                    * f64::sqrt(
+                        stats[0].var_millis_sq() / (stats[0].count - 1) as f64
+                            + stats[b_index].var_millis_sq() / (stats[b_index].count - 1) as f64,
+                    );
 
-            // Quarter of a confidence interval
-            let conf_q = conf_h / 2.0;
+                // Quarter of a confidence interval
+                let conf_q = conf_h / 2.0;
 
-            let b_a_min =
-                (stats[1].mean.millis_f64() - conf_q) / (stats[0].mean.millis_f64() + conf_q);
-            let b_a_max =
-                (stats[1].mean.millis_f64() + conf_q) / (stats[0].mean.millis_f64() - conf_q);
+                let b_a_min = (stats[b_index].mean.millis_f64() - conf_q)
+                    / (stats[0].mean.millis_f64() + conf_q);
+                let b_a_max = (stats[b_index].mean.millis_f64() + conf_q)
+                    / (stats[0].mean.millis_f64() - conf_q);
 
-            writeln!(
-                log.both_log_and_stderr(),
-                "B/A: {:.3} {:.3}..{:.3} (95% conf)",
-                stats[1].mean / stats[0].mean,
-                b_a_min,
-                b_a_max,
-            )
-            .unwrap();
+                writeln!(
+                    log.both_log_and_stderr(),
+                    "{b_name}/{a_name}: {b_a:.3} {b_a_min:.3}..{b_a_max:.3} (95% conf)",
+                    b_name = tests[b_index].name,
+                    a_name = tests[0].name,
+                    b_a = stats[b_index].mean / stats[0].mean,
+                    b_a_min = b_a_min,
+                    b_a_max = b_a_max,
+                )
+                .unwrap();
+            }
         }
 
         log.write_raw(&durations).unwrap();
