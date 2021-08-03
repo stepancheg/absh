@@ -8,6 +8,10 @@ impl Distr {
     pub fn max(&self) -> u64 {
         self.counts.iter().max().cloned().unwrap_or(0)
     }
+
+    pub fn to_f64(&self) -> Vec<f64> {
+        self.counts.iter().map(|&c| c as f64).collect()
+    }
 }
 
 #[derive(Default)]

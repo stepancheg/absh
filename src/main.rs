@@ -175,33 +175,14 @@ fn make_two_distr(durations: &[&Durations], width: usize) -> Vec<String> {
     let max_height_halves = distr_halves.iter().map(|h| h.max()).max().unwrap().clone();
     let max_height = distr.iter().map(|h| h.max()).max().unwrap().clone();
 
-    let a_distr = distr[0]
-        .counts
-        .iter()
-        .map(|&v| v as f64)
-        .collect::<Vec<_>>();
-    let b_distr = distr[1]
-        .counts
-        .iter()
-        .map(|&v| v as f64)
-        .collect::<Vec<_>>();
+    let distr: Vec<_> = distr.iter().map(|d| d.to_f64()).collect();
+    let distr_halves: Vec<_> = distr_halves.iter().map(|d| d.to_f64()).collect();
 
-    let a_distr_halves = distr_halves[0]
-        .counts
-        .iter()
-        .map(|&v| v as f64)
-        .collect::<Vec<_>>();
-    let b_distr_halves = distr_halves[1]
-        .counts
-        .iter()
-        .map(|&v| v as f64)
-        .collect::<Vec<_>>();
+    let a_distr_plot = plot(&distr[0], 0.0, max_height as f64);
+    let b_distr_plot = plot(&distr[1], 0.0, max_height as f64);
 
-    let a_distr_plot = plot(&a_distr, 0.0, max_height as f64);
-    let b_distr_plot = plot(&b_distr, 0.0, max_height as f64);
-
-    let a_distr_halves_plot = plot_halves(&a_distr_halves, 0.0, max_height_halves as f64);
-    let b_distr_halves_plot = plot_halves(&b_distr_halves, 0.0, max_height_halves as f64);
+    let a_distr_halves_plot = plot_halves(&distr_halves[0], 0.0, max_height_halves as f64);
+    let b_distr_halves_plot = plot_halves(&distr_halves[1], 0.0, max_height_halves as f64);
 
     if max_height_halves <= 2 {
         vec![a_distr_halves_plot, b_distr_halves_plot]
