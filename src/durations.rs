@@ -25,8 +25,6 @@ impl Durations {
         self.raw.push(d);
         let idx = self.sorted.binary_search(&d).unwrap_or_else(|x| x);
         self.sorted.insert(idx, d);
-        // self.sorted.push(d);
-        // self.sorted.sort();
     }
 
     pub fn clear(&mut self) {
