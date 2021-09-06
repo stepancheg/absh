@@ -17,6 +17,7 @@ use absh::PlotHighlight;
 use absh::Stats;
 use absh::TWO_SIDED_95;
 use rand::prelude::SliceRandom;
+use wait4::Wait4;
 
 struct Test {
     name: &'static str,
@@ -107,9 +108,14 @@ fn run_test(log: &mut absh::RunLog, test: &mut Test) {
     }
 
     let mut process = spawn_sh(&test.warmup);
-    let status = process.wait().unwrap();
-    if !status.success() {
-        writeln!(log.both_log_and_stderr(), "warmup failed: {}", status).unwrap();
+    let status = process.wait4().unwrap();
+    if !status.status.success() {
+        writeln!(
+            log.both_log_and_stderr(),
+            "warmup failed: {}",
+            status.status
+        )
+        .unwrap();
         return;
     }
 
@@ -122,9 +128,14 @@ fn run_test(log: &mut absh::RunLog, test: &mut Test) {
     let start = Instant::now();
 
     let mut process = spawn_sh(&test.run);
-    let status = process.wait().unwrap();
-    if !status.success() {
-        writeln!(log.both_log_and_stderr(), "script failed: {}", status).unwrap();
+    let status = process.wait4().unwrap();
+    if !status.status.success() {
+        writeln!(
+            log.both_log_and_stderr(),
+            "script failed: {}",
+            status.status
+        )
+        .unwrap();
         return;
     }
 
