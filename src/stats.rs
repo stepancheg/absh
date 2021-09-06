@@ -26,7 +26,7 @@ impl Stats<Duration> {
     }
 }
 
-impl fmt::Display for Stats<Duration> {
+impl<T: Number> fmt::Display for Stats<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let _ = self.max;
         write!(
