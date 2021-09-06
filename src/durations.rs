@@ -1,6 +1,8 @@
 use crate::numbers::Distr;
 use crate::numbers::Numbers;
+use crate::stats::stats;
 use crate::Duration;
+use crate::Stats;
 
 #[derive(Default)]
 pub struct Durations {
@@ -54,5 +56,9 @@ impl Durations {
 
     pub fn distr(&self, n: usize, min: Duration, max: Duration) -> Distr {
         self.numbers.distr(n, min, max)
+    }
+
+    pub fn stats(&self) -> Stats<Duration> {
+        stats(&self.numbers)
     }
 }

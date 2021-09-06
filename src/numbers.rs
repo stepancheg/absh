@@ -1,7 +1,4 @@
-use std::iter::Sum;
-use std::ops::Add;
-use std::ops::Div;
-use std::ops::Sub;
+use crate::number::Number;
 
 pub struct Distr {
     pub counts: Vec<u64>,
@@ -15,14 +12,6 @@ impl Distr {
     pub fn to_f64(&self) -> Vec<f64> {
         self.counts.iter().map(|&c| c as f64).collect()
     }
-}
-
-pub(crate) trait Number:
-    Clone + Ord + Add<Output = Self> + Sub<Output = Self> + Div<usize, Output = Self> + Sum + Default
-{
-    fn as_f64(&self) -> f64;
-
-    fn from_f64(f: f64) -> Self;
 }
 
 #[derive(Default)]

@@ -1,5 +1,4 @@
 use std::convert::TryInto;
-use std::fmt;
 use std::fmt::Write as _;
 use std::io::Write;
 use std::time::Instant;
@@ -13,6 +12,7 @@ use absh::sh::spawn_sh;
 use absh::t_table;
 use absh::Duration;
 use absh::Durations;
+use absh::Stats;
 use absh::TWO_SIDED_95;
 use rand::prelude::SliceRandom;
 
@@ -106,57 +106,6 @@ fn run_test(log: &mut absh::RunLog, test: &mut Test) {
     .unwrap();
 
     test.durations.push(duration);
-}
-
-struct Stats {
-    count: u64,
-    mean: Duration,
-    med: Duration,
-    min: Duration,
-    max: Duration,
-    std: Duration,
-}
-
-impl Stats {
-    /// sigma^2
-    fn var_millis_sq(&self) -> f64 {
-        let millis = self.std.millis_f64();
-        millis * millis
-    }
-
-    fn se(&self) -> Duration {
-        Duration::from_nanos((self.std.nanos() as f64 / f64::sqrt((self.count - 1) as f64)) as u64)
-    }
-}
-
-impl fmt::Display for Stats {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let _ = self.max;
-        write!(
-            f,
-            "n={n} mean={mean} std={std} se={se} min={min} max={max} med={med}",
-            n = self.count,
-            mean = self.mean,
-            std = self.std,
-            se = self.se(),
-            min = self.min,
-            max = self.max,
-            med = self.med,
-        )
-    }
-}
-
-fn stats(durations: &mut Durations) -> Stats {
-    assert!(durations.len() >= 2);
-
-    Stats {
-        count: durations.len() as u64,
-        mean: durations.mean(),
-        med: durations.med(),
-        min: durations.min(),
-        max: durations.max(),
-        std: durations.std(),
-    }
 }
 
 fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) {
@@ -324,10 +273,13 @@ fn main() {
             continue;
         }
 
-        let stats: Vec<_> = tests.iter_mut().map(|t| stats(&mut t.durations)).collect();
+        let stats: Vec<_> = tests.iter_mut().map(|t| t.durations.stats()).collect();
         let durations: Vec<_> = tests.iter().map(|t| &t.durations).collect();
 
-        let stats_str: Vec<_> = stats.iter().map(|s: &Stats| s.to_string()).collect();
+        let stats_str: Vec<_> = stats
+            .iter()
+            .map(|s: &Stats<Duration>| s.to_string())
+            .collect();
 
         let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
 

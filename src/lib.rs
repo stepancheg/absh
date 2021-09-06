@@ -2,15 +2,19 @@ pub mod ansi;
 mod bars;
 mod duration;
 mod durations;
+mod number;
 mod numbers;
 mod run_log;
 pub mod sh;
+mod stats;
 
 pub use bars::plot;
 pub use bars::plot_halves;
 pub use duration::Duration;
 pub use durations::Durations;
+pub use number::Number;
 pub use run_log::RunLog;
+pub use stats::Stats;
 
 /// Confidence interval.
 #[allow(non_camel_case_types)]

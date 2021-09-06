@@ -1,4 +1,4 @@
-use crate::numbers::Number;
+use crate::number::Number;
 use std::fmt;
 use std::iter::Sum;
 use std::ops::Add;
