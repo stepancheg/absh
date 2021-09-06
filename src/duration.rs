@@ -1,3 +1,4 @@
+use crate::numbers::Number;
 use std::fmt;
 use std::iter::Sum;
 use std::ops::Add;
@@ -8,6 +9,16 @@ use std::ops::Sub;
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Default, Debug)]
 pub struct Duration {
     nanos: u64,
+}
+
+impl Number for Duration {
+    fn as_f64(&self) -> f64 {
+        self.seconds_f64()
+    }
+
+    fn from_f64(f: f64) -> Self {
+        Duration::from_seconds_f64(f)
+    }
 }
 
 impl Duration {

@@ -2,6 +2,7 @@ pub mod ansi;
 mod bars;
 mod duration;
 mod durations;
+mod numbers;
 mod run_log;
 pub mod sh;
 

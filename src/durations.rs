@@ -1,104 +1,59 @@
+use crate::numbers::Distr;
+use crate::numbers::Numbers;
 use crate::Duration;
-
-pub struct Distr {
-    pub counts: Vec<u64>,
-}
-
-impl Distr {
-    pub fn max(&self) -> u64 {
-        self.counts.iter().max().cloned().unwrap_or(0)
-    }
-
-    pub fn to_f64(&self) -> Vec<f64> {
-        self.counts.iter().map(|&c| c as f64).collect()
-    }
-}
 
 #[derive(Default)]
 pub struct Durations {
-    raw: Vec<Duration>,
-    sorted: Vec<Duration>,
+    numbers: Numbers<Duration>,
 }
 
 impl Durations {
     pub fn push(&mut self, d: Duration) {
-        self.raw.push(d);
-        let idx = self.sorted.binary_search(&d).unwrap_or_else(|x| x);
-        self.sorted.insert(idx, d);
+        self.numbers.push(d)
     }
 
     pub fn clear(&mut self) {
-        self.raw.clear();
-        self.sorted.clear();
+        self.numbers.clear()
     }
 
     pub fn raw(&self) -> &[Duration] {
-        &self.raw
+        self.numbers.raw()
     }
 
     pub fn len(&self) -> usize {
-        self.raw.len()
+        self.numbers.len()
     }
 
     pub fn med(&self) -> Duration {
-        if self.len() % 2 == 0 {
-            (self.sorted[self.len() / 2 - 1] + self.sorted[self.len() / 2]) / 2
-        } else {
-            self.sorted[self.len() / 2]
-        }
+        self.numbers.med()
     }
 
     pub fn min(&self) -> Duration {
-        self.sorted[0]
+        self.numbers.min()
     }
 
     pub fn max(&self) -> Duration {
-        self.sorted.last().unwrap().clone()
+        self.numbers.max()
     }
 
     pub fn sum(&self) -> Duration {
-        self.raw.iter().sum()
+        self.numbers.sum()
     }
 
     pub fn mean(&self) -> Duration {
-        if self.len() == 0 {
-            Duration::default()
-        } else {
-            self.sum() / self.len()
-        }
+        self.numbers.mean()
     }
 
     pub fn std(&self) -> Duration {
-        assert!(self.len() >= 2);
-        let mean = self.mean();
-        let s_2 = self
-            .raw
-            .iter()
-            .map(|d| {
-                (d.seconds_f64() - mean.seconds_f64()) * (d.seconds_f64() - mean.seconds_f64())
-            })
-            .sum::<f64>()
-            / ((self.len() - 1) as f64);
-        let std_seconds = f64::sqrt(s_2);
-
-        Duration::from_seconds_f64(std_seconds)
+        self.numbers.std()
     }
 
     pub fn iter<'a>(&'a self) -> impl Iterator<Item = Duration> + 'a {
-        self.raw.iter().cloned()
+        self.numbers.iter()
     }
 
     pub fn distr(&self, n: usize, min: Duration, max: Duration) -> Distr {
-        let mut counts = vec![0; n];
-        if min != max {
-            for d in &self.raw {
-                let bucket = (((*d - min).nanos() as f64) / ((max - min).nanos() as f64)
-                    * ((n - 1) as f64))
-                    .round() as usize;
-                counts[bucket.clamp(0, n - 1)] += 1;
-            }
-        }
-        Distr { counts }
+        self.numbers.distr(n, min, max)
     }
 }
 
@@ -128,11 +83,13 @@ mod test {
         ds.push(Duration::from_millis(10));
         assert_eq!(
             &[1],
-            &ds.distr(1, Duration::from_millis(0), Duration::from_millis(10))[..]
+            &ds.distr(1, Duration::from_millis(0), Duration::from_millis(10))
+                .counts[..]
         );
         assert_eq!(
             &[1],
-            &ds.distr(1, Duration::from_millis(10), Duration::from_millis(20))[..]
+            &ds.distr(1, Duration::from_millis(10), Duration::from_millis(20))
+                .counts[..]
         );
     }
 
@@ -146,7 +103,8 @@ mod test {
         ds.push(Duration::from_millis(20));
         assert_eq!(
             &[2, 3],
-            &ds.distr(2, Duration::from_millis(10), Duration::from_millis(20))[..]
+            &ds.distr(2, Duration::from_millis(10), Duration::from_millis(20))
+                .counts[..]
         );
     }
 
