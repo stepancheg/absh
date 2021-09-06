@@ -12,6 +12,12 @@ pub struct Duration {
 }
 
 impl Number for Duration {
+    fn div_usize(&self, rhs: usize) -> Self {
+        Duration {
+            nanos: self.nanos / (rhs as u64),
+        }
+    }
+
     fn as_f64(&self) -> f64 {
         self.seconds_f64()
     }

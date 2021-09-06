@@ -44,7 +44,7 @@ impl<T: Number> Numbers<T> {
         if self.len() % 2 == 0 {
             let xy: T =
                 self.sorted[self.len() / 2 - 1].clone() + self.sorted[self.len() / 2].clone();
-            xy / 2
+            xy.div_usize(2)
         } else {
             self.sorted[self.len() / 2].clone()
         }
@@ -66,7 +66,7 @@ impl<T: Number> Numbers<T> {
         if self.len() == 0 {
             T::default()
         } else {
-            self.sum() / self.len()
+            self.sum().div_usize(self.len())
         }
     }
 
@@ -147,6 +147,10 @@ mod test {
     }
 
     impl Number for TestNumber {
+        fn div_usize(&self, rhs: usize) -> Self {
+            TestNumber(self.0 / (rhs as u64))
+        }
+
         fn as_f64(&self) -> f64 {
             (self.0 as f64) * 1000.0
         }

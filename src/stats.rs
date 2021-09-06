@@ -12,15 +12,17 @@ pub struct Stats<T: Number> {
     pub std: T,
 }
 
+impl<T: Number> Stats<T> {
+    fn se(&self) -> T {
+        T::from_f64(self.std.as_f64() / f64::sqrt((self.count - 1) as f64))
+    }
+}
+
 impl Stats<Duration> {
     /// sigma^2
     pub fn var_millis_sq(&self) -> f64 {
         let millis = self.std.millis_f64();
         millis * millis
-    }
-
-    fn se(&self) -> Duration {
-        Duration::from_nanos((self.std.nanos() as f64 / f64::sqrt((self.count - 1) as f64)) as u64)
     }
 }
 
@@ -51,5 +53,23 @@ pub(crate) fn stats<T: Number>(numbers: &Numbers<T>) -> Stats<T> {
         min: numbers.min(),
         max: numbers.max(),
         std: numbers.std(),
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::numbers::Numbers;
+    use crate::stats::stats;
+
+    #[test]
+    fn se() {
+        let mut numbers = Numbers::default();
+        numbers.push(10u64);
+        numbers.push(20u64);
+        numbers.push(30u64);
+        numbers.push(30u64);
+        numbers.push(30u64);
+        let stats = stats(&numbers);
+        assert_eq!(4, stats.se());
     }
 }
