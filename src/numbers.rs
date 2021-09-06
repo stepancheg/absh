@@ -113,3 +113,126 @@ impl<T: Number> Numbers<T> {
         Distr { counts }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::numbers::Number;
+    use crate::numbers::Numbers;
+    use std::iter::Sum;
+    use std::ops::Add;
+    use std::ops::Div;
+    use std::ops::Sub;
+
+    #[derive(Copy, Clone, Default, PartialOrd, Eq, PartialEq, Ord, Debug)]
+    struct TestNumber(u64);
+
+    impl Add for TestNumber {
+        type Output = TestNumber;
+
+        fn add(self, rhs: TestNumber) -> Self::Output {
+            TestNumber(self.0 + rhs.0)
+        }
+    }
+
+    impl Sub for TestNumber {
+        type Output = Self;
+
+        fn sub(self, rhs: Self) -> Self::Output {
+            assert!(self.0 >= rhs.0);
+            TestNumber(self.0 - rhs.0)
+        }
+    }
+
+    impl Div<usize> for TestNumber {
+        type Output = TestNumber;
+
+        fn div(self, rhs: usize) -> Self::Output {
+            TestNumber(self.0 / rhs as u64)
+        }
+    }
+
+    impl Sum for TestNumber {
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> TestNumber {
+            TestNumber(iter.map(|n| n.0).sum())
+        }
+    }
+
+    impl Number for TestNumber {
+        fn as_f64(&self) -> f64 {
+            (self.0 as f64) * 1000.0
+        }
+
+        fn from_f64(f: f64) -> Self {
+            TestNumber((f / 1000.0) as u64)
+        }
+    }
+
+    #[test]
+    fn push() {
+        let mut ds = Numbers::default();
+        ds.push(TestNumber(30));
+        ds.push(TestNumber(50));
+        ds.push(TestNumber(20));
+        ds.push(TestNumber(30));
+        assert_eq!(TestNumber(20), ds.min());
+        assert_eq!(TestNumber(50), ds.max());
+        ds.push(TestNumber(60));
+        assert_eq!(TestNumber(60), ds.max());
+        ds.push(TestNumber(10));
+        assert_eq!(TestNumber(10), ds.min());
+    }
+
+    #[test]
+    fn distr_1() {
+        let mut ds = Numbers::default();
+        ds.push(TestNumber(10));
+        assert_eq!(&[1], &ds.distr(1, TestNumber(0), TestNumber(10)).counts[..]);
+        assert_eq!(
+            &[1],
+            &ds.distr(1, TestNumber(10), TestNumber(20)).counts[..]
+        );
+    }
+
+    #[test]
+    fn distr_2() {
+        let mut ds = Numbers::default();
+        ds.push(TestNumber(10));
+        ds.push(TestNumber(14));
+        ds.push(TestNumber(16));
+        ds.push(TestNumber(17));
+        ds.push(TestNumber(20));
+        assert_eq!(
+            &[2, 3],
+            &ds.distr(2, TestNumber(10), TestNumber(20)).counts[..]
+        );
+    }
+
+    #[test]
+    fn sum() {
+        let mut ds = Numbers::default();
+        ds.push(TestNumber(10));
+        ds.push(TestNumber(20));
+        assert_eq!(TestNumber(30), ds.sum());
+    }
+
+    #[test]
+    fn mean() {
+        let mut ds = Numbers::default();
+
+        assert_eq!(TestNumber::default(), ds.mean());
+
+        ds.push(TestNumber(10));
+        ds.push(TestNumber(30));
+        assert_eq!(TestNumber(20), ds.mean());
+    }
+
+    #[test]
+    fn std() {
+        let mut ds = Numbers::default();
+        ds.push(TestNumber(11));
+        ds.push(TestNumber(13));
+        ds.push(TestNumber(15));
+
+        assert_eq!(TestNumber(2), ds.std())
+    }
+}
