@@ -313,12 +313,13 @@ fn main() {
     }
 
     loop {
+        run_pair(&mut log, &opts, &mut tests);
+
         let min_duration_len = tests.iter_mut().map(|t| t.durations.len()).min().unwrap();
         if Some(min_duration_len) == opts.iterations.map(|n| n as usize) {
             break;
         }
 
-        run_pair(&mut log, &opts, &mut tests);
         if min_duration_len < 2 {
             continue;
         }
