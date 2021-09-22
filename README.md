@@ -12,7 +12,9 @@ It continuously run `B`, `b`, `A`, `a`; ignores the numbers of the first iterati
 and then after third iteration it prints averages, and 95% confidence interval of B average/A average.
 
 ```
-A: n=30 r=14.388+-0.959 se=0.178
-B: n=30 r=12.682+-1.221 se=0.226
-B/A: 0.845..0.919 (95% conf)
+A: n=210 mean=1.367 std=0.109 se=0.007 min=1.222 max=2.403 med=1.353
+B: n=210 mean=1.321 std=0.081 se=0.005 min=1.182 max=1.706 med=1.305
+A: distr=[  ▁▂▄▅▆▄▅▆▅▃▂▁    ▁                                      ]
+B: distr=[ ▁▃▅▄█▆▄▄▂▂▂  ▁                                          ]
+B/A: 0.967 0.953..0.980 (95% conf)
 ```
