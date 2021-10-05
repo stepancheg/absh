@@ -77,6 +77,13 @@ pub fn plot(values: &[f64], min: f64, max: f64) -> String {
         .collect()
 }
 
+pub fn plot_u64(values: &[u64], max: u64) -> String {
+    values
+        .iter()
+        .map(|v| bar_char_0_8_range(*v as f64, 0.0, max as f64))
+        .collect()
+}
+
 pub fn plot_halves(values: &[f64], min: f64, max: f64) -> String {
     let mut s = String::new();
     for chunk in values.chunks(2) {
@@ -84,6 +91,26 @@ pub fn plot_halves(values: &[f64], min: f64, max: f64) -> String {
             s.push(bar_char_0_2_0_2_range([chunk[0], chunk[1]], min, max));
         } else {
             s.push(bar_char_0_2_0_2_range([chunk[0], min], min, max));
+        }
+    }
+    s
+}
+
+pub fn plot_halves_u64(values: &[u64], max: u64) -> String {
+    let mut s = String::new();
+    for chunk in values.chunks(2) {
+        if chunk.len() == 2 {
+            s.push(bar_char_0_2_0_2_range(
+                [chunk[0] as f64, chunk[1] as f64],
+                0.0,
+                max as f64,
+            ));
+        } else {
+            s.push(bar_char_0_2_0_2_range(
+                [chunk[0] as f64, 0.0],
+                0.0,
+                max as f64,
+            ));
         }
     }
     s

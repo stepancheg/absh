@@ -6,8 +6,8 @@ use std::time::Instant;
 use structopt::StructOpt;
 
 use absh::ansi;
-use absh::plot;
-use absh::plot_halves;
+use absh::plot_halves_u64;
+use absh::plot_u64;
 use absh::sh::spawn_sh;
 use absh::t_table;
 use absh::Duration;
@@ -135,17 +135,14 @@ fn make_distr_plots(tests: &[Test], width: usize) -> Vec<String> {
     let max_height_halves = distr_halves.iter().map(|h| h.max()).max().unwrap().clone();
     let max_height = distr.iter().map(|h| h.max()).max().unwrap().clone();
 
-    let distr: Vec<_> = distr.iter().map(|d| d.to_f64()).collect();
-    let distr_halves: Vec<_> = distr_halves.iter().map(|d| d.to_f64()).collect();
-
     let distr_plots = distr
         .iter()
-        .map(|d| plot(d, 0.0, max_height as f64))
+        .map(|d| plot_u64(&d.counts, max_height))
         .collect();
 
     let distr_halves_plots = distr_halves
         .iter()
-        .map(|d| plot_halves(d, 0.0, max_height_halves as f64))
+        .map(|d| plot_halves_u64(&d.counts, max_height_halves))
         .collect();
 
     if max_height_halves <= 2 {
