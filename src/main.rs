@@ -118,16 +118,19 @@ fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) {
     }
 }
 
-fn make_distr_plots(durations: &[&Durations], width: usize) -> Vec<String> {
-    let min = durations.iter().map(|d| d.min()).min().unwrap();
-    let max = durations.iter().map(|d| d.max()).max().unwrap();
+fn make_distr_plots(tests: &[Test], width: usize) -> Vec<String> {
+    let min = tests.iter().map(|t| t.durations.min()).min().unwrap();
+    let max = tests.iter().map(|t| t.durations.max()).max().unwrap();
 
-    let distr_halves: Vec<_> = durations
+    let distr_halves: Vec<_> = tests
         .iter()
-        .map(|d| d.distr(width * 2, min, max))
+        .map(|t| t.durations.distr(width * 2, min, max))
         .collect();
 
-    let distr: Vec<_> = durations.iter().map(|d| d.distr(width, min, max)).collect();
+    let distr: Vec<_> = tests
+        .iter()
+        .map(|t| t.durations.distr(width, min, max))
+        .collect();
 
     let max_height_halves = distr_halves.iter().map(|h| h.max()).max().unwrap().clone();
     let max_height = distr.iter().map(|h| h.max()).max().unwrap().clone();
@@ -283,7 +286,7 @@ fn main() {
 
         let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
 
-        let distr_plots = make_distr_plots(&durations, stats_width - 8);
+        let distr_plots = make_distr_plots(&tests, stats_width - 8);
 
         writeln!(log.both_log_and_stderr(), "").unwrap();
         for index in 0..tests.len() {
