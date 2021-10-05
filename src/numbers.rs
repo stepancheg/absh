@@ -107,6 +107,7 @@ impl<T: Number> Numbers<T> {
 mod test {
     use crate::numbers::Number;
     use crate::numbers::Numbers;
+    use std::fmt;
     use std::iter::Sum;
     use std::ops::Add;
     use std::ops::Div;
@@ -114,6 +115,12 @@ mod test {
 
     #[derive(Copy, Clone, Default, PartialOrd, Eq, PartialEq, Ord, Debug)]
     struct TestNumber(u64);
+
+    impl fmt::Display for TestNumber {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            fmt::Display::fmt(&self.0, f)
+        }
+    }
 
     impl Add for TestNumber {
         type Output = TestNumber;
