@@ -6,12 +6,14 @@ use std::time::Instant;
 use structopt::StructOpt;
 
 use absh::ansi;
+use absh::ansi::RESET;
 use absh::plot_halves_u64;
 use absh::plot_u64;
 use absh::sh::spawn_sh;
 use absh::t_table;
 use absh::Duration;
 use absh::Durations;
+use absh::PlotHighlight;
 use absh::Stats;
 use absh::TWO_SIDED_95;
 use rand::prelude::SliceRandom;
@@ -22,6 +24,37 @@ struct Test {
     run: String,
     color_if_tty: &'static str,
     durations: Durations,
+}
+
+impl Test {
+    fn color(&self, is_tty: bool) -> &'static str {
+        match is_tty {
+            true => self.color_if_tty,
+            false => "",
+        }
+    }
+
+    fn plot_highlights(&self, is_tty: bool) -> PlotHighlight {
+        match is_tty {
+            true => PlotHighlight {
+                non_zero: format!("{}", self.color_if_tty.to_owned()),
+                zero: format!("{}", ansi::WHITE_BG),
+                reset: RESET.to_owned(),
+            },
+            false => PlotHighlight::no(),
+        }
+    }
+
+    fn plot_halves_highlights(&self, is_tty: bool) -> PlotHighlight {
+        match is_tty {
+            true => PlotHighlight {
+                non_zero: format!("{}", self.color_if_tty.to_owned()),
+                zero: "".to_owned(),
+                reset: RESET.to_owned(),
+            },
+            false => PlotHighlight::no(),
+        }
+    }
 }
 
 #[derive(StructOpt, Debug)]
@@ -118,31 +151,42 @@ fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) {
     }
 }
 
-fn make_distr_plots(tests: &[Test], width: usize) -> Vec<String> {
+fn make_distr_plots(tests: &[Test], width: usize, is_tty: bool) -> Vec<String> {
     let min = tests.iter().map(|t| t.durations.min()).min().unwrap();
     let max = tests.iter().map(|t| t.durations.max()).max().unwrap();
 
     let distr_halves: Vec<_> = tests
         .iter()
-        .map(|t| t.durations.distr(width * 2, min, max))
+        .map(|t| (t, t.durations.distr(width * 2, min, max)))
         .collect();
 
     let distr: Vec<_> = tests
         .iter()
-        .map(|t| t.durations.distr(width, min, max))
+        .map(|t| (t, t.durations.distr(width, min, max)))
         .collect();
 
-    let max_height_halves = distr_halves.iter().map(|h| h.max()).max().unwrap().clone();
-    let max_height = distr.iter().map(|h| h.max()).max().unwrap().clone();
+    let max_height_halves = distr_halves
+        .iter()
+        .map(|(_, d)| d.max())
+        .max()
+        .unwrap()
+        .clone();
+    let max_height = distr.iter().map(|(_, d)| d.max()).max().unwrap().clone();
 
     let distr_plots = distr
         .iter()
-        .map(|d| plot_u64(&d.counts, max_height))
+        .map(|(t, d)| plot_u64(&d.counts, max_height, &t.plot_highlights(is_tty)))
         .collect();
 
     let distr_halves_plots = distr_halves
         .iter()
-        .map(|d| plot_halves_u64(&d.counts, max_height_halves))
+        .map(|(t, d)| {
+            plot_halves_u64(
+                &d.counts,
+                max_height_halves,
+                &t.plot_halves_highlights(is_tty),
+            )
+        })
         .collect();
 
     if max_height_halves <= 2 {
@@ -199,10 +243,7 @@ fn main() {
         false => ("", ""),
     };
 
-    let test_color = match is_tty {
-        true => |t: &Test| t.color_if_tty,
-        false => |_: &Test| "",
-    };
+    let test_color = |t: &Test| t.color(is_tty);
 
     eprintln!("Writing absh data to {}/", log.name().display());
     if let Some(last) = log.last() {
@@ -283,7 +324,7 @@ fn main() {
 
         let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
 
-        let distr_plots = make_distr_plots(&tests, stats_width - 8);
+        let distr_plots = make_distr_plots(&tests, stats_width - 8, is_tty);
 
         writeln!(log.both_log_and_stderr(), "").unwrap();
         for index in 0..tests.len() {
@@ -303,7 +344,7 @@ fn main() {
             let test = &tests[index];
             let distr_plot = &distr_plots[index];
             eprintln!(
-                "{color}{name}{reset}: distr=[{color}{plot}{reset}]",
+                "{color}{name}{reset}: distr=[{plot}]",
                 name = test.name,
                 color = test_color(test),
                 reset = reset,

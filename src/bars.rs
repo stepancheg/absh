@@ -77,13 +77,6 @@ pub fn plot(values: &[f64], min: f64, max: f64) -> String {
         .collect()
 }
 
-pub fn plot_u64(values: &[u64], max: u64) -> String {
-    values
-        .iter()
-        .map(|v| bar_char_0_8_range(*v as f64, 0.0, max as f64))
-        .collect()
-}
-
 pub fn plot_halves(values: &[f64], min: f64, max: f64) -> String {
     let mut s = String::new();
     for chunk in values.chunks(2) {
@@ -96,23 +89,96 @@ pub fn plot_halves(values: &[f64], min: f64, max: f64) -> String {
     s
 }
 
-pub fn plot_halves_u64(values: &[u64], max: u64) -> String {
-    let mut s = String::new();
-    for chunk in values.chunks(2) {
-        if chunk.len() == 2 {
-            s.push(bar_char_0_2_0_2_range(
-                [chunk[0] as f64, chunk[1] as f64],
-                0.0,
-                max as f64,
-            ));
-        } else {
-            s.push(bar_char_0_2_0_2_range(
-                [chunk[0] as f64, 0.0],
-                0.0,
-                max as f64,
-            ));
-        }
+#[derive(Default)]
+pub struct PlotHighlight {
+    pub non_zero: String,
+    pub zero: String,
+    pub reset: String,
+}
+
+impl PlotHighlight {
+    pub fn no() -> PlotHighlight {
+        PlotHighlight::default()
     }
+}
+
+pub fn plot_u64(values: &[u64], max: u64, highlight: &PlotHighlight) -> String {
+    let mut s = String::new();
+
+    let lead_zeros = values.iter().take_while(|n| **n == 0).count();
+    let values = &values[lead_zeros..];
+
+    let tail_zeros = values.iter().rev().take_while(|n| **n == 0).count();
+    let values = &values[..values.len() - tail_zeros];
+
+    s.push_str(&highlight.zero);
+    for _ in 0..lead_zeros {
+        s.push(' ');
+    }
+    s.push_str(&highlight.reset);
+
+    s.push_str(&highlight.non_zero);
+    for v in values {
+        s.push(bar_char_0_8_range(*v as f64, 0.0, max as f64));
+    }
+    s.push_str(&highlight.reset);
+
+    s.push_str(&highlight.zero);
+    for _ in 0..tail_zeros {
+        s.push(' ');
+    }
+    s.push_str(&highlight.reset);
+
+    s
+}
+
+pub fn plot_halves_u64(values: &[u64], max: u64, highlight: &PlotHighlight) -> String {
+    let values: Vec<[u64; 2]> = values
+        .chunks(2)
+        .map(|c| match c {
+            [a, b] => [*a, *b],
+            [a] => [*a, 0],
+            _ => unreachable!(),
+        })
+        .collect();
+
+    let lead_zeros = values
+        .iter()
+        .take_while(|[a, b]| *a == 0 && *b == 0)
+        .count();
+    let values = &values[lead_zeros..];
+
+    let tail_zeros = values
+        .iter()
+        .rev()
+        .take_while(|[a, b]| *a == 0 && *b == 0)
+        .count();
+    let values = &values[..values.len() - tail_zeros];
+
+    let mut s = String::new();
+
+    s.push_str(&highlight.zero);
+    for _ in 0..lead_zeros {
+        s.push(' ');
+    }
+    s.push_str(&highlight.reset);
+
+    s.push_str(&highlight.non_zero);
+    for [a, b] in values {
+        s.push(bar_char_0_2_0_2_range(
+            [*a as f64, *b as f64],
+            0.0,
+            max as f64,
+        ));
+    }
+    s.push_str(&highlight.reset);
+
+    s.push_str(&highlight.zero);
+    for _ in 0..tail_zeros {
+        s.push(' ');
+    }
+    s.push_str(&highlight.reset);
+
     s
 }
 
@@ -121,6 +187,9 @@ mod test {
     use crate::bars::f64_to_bucket;
     use crate::bars::plot_halves;
     use crate::plot;
+    use crate::plot_halves_u64;
+    use crate::plot_u64;
+    use crate::PlotHighlight;
 
     #[test]
     fn test_f64_to_range() {
@@ -149,10 +218,37 @@ mod test {
     }
 
     #[test]
+    fn test_plot_u64() {
+        let highlight = PlotHighlight {
+            non_zero: "<".to_owned(),
+            zero: "[".to_owned(),
+            reset: "!".to_owned(),
+        };
+        assert_eq!(
+            "[  !<▄ █![ !",
+            plot_u64(&[0, 0, 10, 0, 20, 0], 20, &highlight)
+        );
+    }
+
+    #[test]
     fn test_plot_halves() {
         assert_eq!(
             " ▟█",
             plot_halves(&[3.0, 3.9, 4.1, 5.1, 5.1, 6.0], 3.0, 6.0)
         );
+    }
+
+    #[test]
+    fn test_plot_halves_u64() {
+        let highlight = PlotHighlight {
+            non_zero: "<".to_owned(),
+            zero: "[".to_owned(),
+            reset: "!".to_owned(),
+        };
+        assert_eq!(
+            "[ !<▟![ !",
+            plot_halves_u64(&[0, 0, 10, 20, 0, 0], 20, &highlight)
+        );
+        assert_eq!("[ !<▟![!", plot_halves_u64(&[0, 0, 10, 20], 20, &highlight));
     }
 }

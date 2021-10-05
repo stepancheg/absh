@@ -12,6 +12,7 @@ pub use bars::plot;
 pub use bars::plot_halves;
 pub use bars::plot_halves_u64;
 pub use bars::plot_u64;
+pub use bars::PlotHighlight;
 pub use duration::Duration;
 pub use durations::Durations;
 pub use number::Number;
