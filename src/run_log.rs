@@ -9,7 +9,8 @@ use std::path::PathBuf;
 use std::time::SystemTime;
 
 use crate::ansi::strip_csi;
-use crate::Durations;
+use crate::numbers::Numbers;
+use crate::Duration;
 use std::io::Write;
 
 pub struct RunLog {
@@ -80,9 +81,9 @@ impl RunLog {
         BothLogAndStderr { log: self }
     }
 
-    pub fn write_raw(&mut self, durations: &[&Durations]) -> io::Result<()> {
+    pub fn write_raw(&mut self, durations: &[&Numbers<Duration>]) -> io::Result<()> {
         let mut content = String::new();
-        fn join(r: &mut String, ds: &Durations) {
+        fn join(r: &mut String, ds: &Numbers<Duration>) {
             for (i, d) in ds.iter().enumerate() {
                 if i != 0 {
                     write!(r, " ").unwrap();

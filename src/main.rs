@@ -12,7 +12,7 @@ use absh::plot_u64;
 use absh::sh::spawn_sh;
 use absh::t_table;
 use absh::Duration;
-use absh::Durations;
+use absh::Numbers;
 use absh::PlotHighlight;
 use absh::Stats;
 use absh::TWO_SIDED_95;
@@ -23,7 +23,7 @@ struct Test {
     warmup: String,
     run: String,
     color_if_tty: &'static str,
-    durations: Durations,
+    durations: Numbers<Duration>,
 }
 
 impl Test {
@@ -207,7 +207,7 @@ fn main() {
         warmup: opts.aw.clone().unwrap_or(String::new()),
         run: opts.a.clone(),
         color_if_tty: ansi::RED,
-        durations: Durations::default(),
+        durations: Numbers::default(),
     });
     if let Some(b) = opts.b.clone() {
         tests.push(Test {
@@ -215,7 +215,7 @@ fn main() {
             warmup: opts.bw.clone().unwrap_or(String::new()),
             run: b,
             color_if_tty: ansi::GREEN,
-            durations: Durations::default(),
+            durations: Numbers::default(),
         });
     }
     if let Some(c) = opts.c.clone() {
@@ -224,7 +224,7 @@ fn main() {
             warmup: opts.cw.clone().unwrap_or(String::new()),
             run: c,
             color_if_tty: ansi::BLUE,
-            durations: Durations::default(),
+            durations: Numbers::default(),
         });
     }
     if let Some(d) = opts.d.clone() {
@@ -233,7 +233,7 @@ fn main() {
             warmup: opts.dw.clone().unwrap_or(String::new()),
             run: d,
             color_if_tty: ansi::MAGENTA,
-            durations: Durations::default(),
+            durations: Numbers::default(),
         });
     }
 

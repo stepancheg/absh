@@ -1,4 +1,6 @@
 use crate::number::Number;
+use crate::stats::stats;
+use crate::Stats;
 
 pub struct Distr {
     pub counts: Vec<u64>,
@@ -15,7 +17,7 @@ impl Distr {
 }
 
 #[derive(Default)]
-pub(crate) struct Numbers<T: Number> {
+pub struct Numbers<T: Number> {
     raw: Vec<T>,
     sorted: Vec<T>,
 }
@@ -100,6 +102,10 @@ impl<T: Number> Numbers<T> {
             }
         }
         Distr { counts }
+    }
+
+    pub fn stats(&self) -> Stats<T> {
+        stats(self)
     }
 }
 

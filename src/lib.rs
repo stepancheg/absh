@@ -1,7 +1,6 @@
 pub mod ansi;
 mod bars;
 mod duration;
-mod durations;
 mod number;
 mod numbers;
 mod run_log;
@@ -14,8 +13,8 @@ pub use bars::plot_halves_u64;
 pub use bars::plot_u64;
 pub use bars::PlotHighlight;
 pub use duration::Duration;
-pub use durations::Durations;
 pub use number::Number;
+pub use numbers::Numbers;
 pub use run_log::RunLog;
 pub use stats::Stats;
 
