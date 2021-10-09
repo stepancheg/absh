@@ -30,12 +30,12 @@ impl<T: Number> fmt::Display for Stats<T> {
             f,
             "n={n} mean={mean} std={std} se={se} min={min} max={max} med={med}",
             n = self.count,
-            mean = self.mean,
-            std = self.std,
-            se = self.se(),
-            min = self.min,
-            max = self.max,
-            med = self.med,
+            mean = self.mean.display_for_stats(),
+            std = self.std.display_for_stats(),
+            se = self.se().display_for_stats(),
+            min = self.min.display_for_stats(),
+            max = self.max.display_for_stats(),
+            med = self.med.display_for_stats(),
         )
     }
 }

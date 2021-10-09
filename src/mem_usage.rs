@@ -1,6 +1,5 @@
 use crate::Number;
-use std::fmt::Display;
-use std::fmt::Formatter;
+use std::fmt;
 use std::iter::Sum;
 use std::ops::Add;
 use std::ops::Sub;
@@ -52,8 +51,8 @@ impl Sum for MemUsage {
     }
 }
 
-impl Display for MemUsage {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for MemUsage {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.bytes)
     }
 }
@@ -71,5 +70,9 @@ impl Number for MemUsage {
 
     fn from_f64(f: f64) -> Self {
         MemUsage { bytes: f as u64 }
+    }
+
+    fn fmt_for_stats(&self, f: &mut fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.mib())
     }
 }

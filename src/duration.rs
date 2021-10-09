@@ -25,6 +25,10 @@ impl Number for Duration {
     fn from_f64(f: f64) -> Self {
         Duration::from_seconds_f64(f)
     }
+
+    fn fmt_for_stats(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:.3}", self)
+    }
 }
 
 impl Duration {

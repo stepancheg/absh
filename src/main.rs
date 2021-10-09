@@ -98,6 +98,8 @@ struct Opts {
         help = "Stop after n successful iterations (run forever if not specified)"
     )]
     iterations: Option<u32>,
+    #[structopt(short = "m", long = "mem", help = "Also measure max resident set size")]
+    mem: bool,
 }
 
 fn run_test(log: &mut absh::RunLog, test: &mut Test) {
@@ -219,6 +221,7 @@ fn print_stats<N: Number>(
     tests: &[Test],
     is_tty: bool,
     log: &mut RunLog,
+    name: &str,
     numbers: impl Fn(&Test) -> &Numbers<N>,
 ) {
     let reset = match is_tty {
@@ -238,6 +241,7 @@ fn print_stats<N: Number>(
     let distr_plots = make_distr_plots(&tests, stats_width - 8, is_tty);
 
     writeln!(log.both_log_and_stderr(), "").unwrap();
+    writeln!(log.both_log_and_stderr(), "{}:", name).unwrap();
     for index in 0..tests.len() {
         let test = &tests[index];
         let stats = &stats[index];
@@ -420,6 +424,9 @@ fn main() {
             continue;
         }
 
-        print_stats(&tests, is_tty, &mut log, |t| &t.durations);
+        print_stats(&tests, is_tty, &mut log, "CPU time", |t| &t.durations);
+        if opts.mem {
+            print_stats(&tests, is_tty, &mut log, "Max RSS", |t| &t.mem_usages);
+        }
     }
 }
