@@ -54,7 +54,7 @@ impl Sum for MemUsage {
 
 impl Display for MemUsage {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}MiB", self.mib())
+        write!(f, "{}", self.bytes)
     }
 }
 
