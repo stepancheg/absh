@@ -10,13 +10,13 @@ use absh::ansi::RESET;
 use absh::plot_halves_u64;
 use absh::plot_u64;
 use absh::sh::spawn_sh;
-use absh::t_table;
+use absh::student::t_table;
+use absh::student::TWO_SIDED_95;
 use absh::Duration;
 use absh::MemUsage;
 use absh::Numbers;
 use absh::PlotHighlight;
 use absh::Stats;
-use absh::TWO_SIDED_95;
 use rand::prelude::SliceRandom;
 use wait4::Wait4;
 
