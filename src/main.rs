@@ -12,6 +12,7 @@ use absh::plot_u64;
 use absh::sh::spawn_sh;
 use absh::t_table;
 use absh::Duration;
+use absh::MemUsage;
 use absh::Numbers;
 use absh::PlotHighlight;
 use absh::Stats;
@@ -25,6 +26,7 @@ struct Test {
     run: String,
     color_if_tty: &'static str,
     durations: Numbers<Duration>,
+    mem_usages: Numbers<MemUsage>,
 }
 
 impl Test {
@@ -140,16 +142,20 @@ fn run_test(log: &mut absh::RunLog, test: &mut Test) {
     }
 
     let duration = Duration::from_nanos(start.elapsed().as_nanos().try_into().unwrap());
+    assert!(status.rusage.maxrss != 0, "maxrss not available");
+    let max_rss = MemUsage::from_bytes(status.rusage.maxrss);
 
     writeln!(
         log.both_log_and_stderr(),
-        "{} finished in {}",
+        "{} finished in {}, max rss {} MiB",
         test.name,
-        duration
+        duration,
+        max_rss.mib(),
     )
     .unwrap();
 
     test.durations.push(duration);
+    test.mem_usages.push(max_rss);
 }
 
 fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) {
@@ -219,6 +225,7 @@ fn main() {
         run: opts.a.clone(),
         color_if_tty: ansi::RED,
         durations: Numbers::default(),
+        mem_usages: Numbers::default(),
     });
     if let Some(b) = opts.b.clone() {
         tests.push(Test {
@@ -227,6 +234,7 @@ fn main() {
             run: b,
             color_if_tty: ansi::GREEN,
             durations: Numbers::default(),
+            mem_usages: Numbers::default(),
         });
     }
     if let Some(c) = opts.c.clone() {
@@ -236,6 +244,7 @@ fn main() {
             run: c,
             color_if_tty: ansi::BLUE,
             durations: Numbers::default(),
+            mem_usages: Numbers::default(),
         });
     }
     if let Some(d) = opts.d.clone() {
@@ -245,6 +254,7 @@ fn main() {
             run: d,
             color_if_tty: ansi::MAGENTA,
             durations: Numbers::default(),
+            mem_usages: Numbers::default(),
         });
     }
 
