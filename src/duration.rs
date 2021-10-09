@@ -27,6 +27,7 @@ impl Number for Duration {
     }
 
     fn fmt_for_stats(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // TODO: ignores formatter flags
         write!(f, "{:.3}", self)
     }
 }

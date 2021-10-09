@@ -14,7 +14,7 @@ pub trait Number:
     fn from_f64(f: f64) -> Self;
 
     fn fmt_for_stats(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self)
+        fmt::Display::fmt(self, f)
     }
 
     fn display_for_stats(&self) -> NumberDisplayForStats<Self> {
@@ -41,9 +41,5 @@ impl Number for u64 {
 
     fn from_f64(f: f64) -> Self {
         f as u64
-    }
-
-    fn fmt_for_stats(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self)
     }
 }

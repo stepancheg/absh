@@ -234,7 +234,7 @@ fn print_stats<N: Number>(
     let stats: Vec<_> = tests.iter().map(|t| numbers(t).stats()).collect();
     let durations: Vec<_> = tests.iter().map(|t| numbers(t)).collect();
 
-    let stats_str: Vec<_> = stats.iter().map(|s: &Stats<N>| s.to_string()).collect();
+    let stats_str: Vec<_> = Stats::display_stats(&stats);
 
     let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
 
@@ -244,7 +244,7 @@ fn print_stats<N: Number>(
     writeln!(log.both_log_and_stderr(), "{}:", name).unwrap();
     for index in 0..tests.len() {
         let test = &tests[index];
-        let stats = &stats[index];
+        let stats = &stats_str[index];
         writeln!(
             log.both_log_and_stderr(),
             "{color}{name}{reset}: {stats}",

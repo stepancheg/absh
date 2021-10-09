@@ -73,6 +73,6 @@ impl Number for MemUsage {
     }
 
     fn fmt_for_stats(&self, f: &mut fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.mib())
+        fmt::Display::fmt(&self.mib(), f)
     }
 }
