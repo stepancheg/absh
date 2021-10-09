@@ -16,6 +16,7 @@ use absh::Duration;
 use absh::MemUsage;
 use absh::Numbers;
 use absh::PlotHighlight;
+use absh::RunLog;
 use absh::Stats;
 use rand::prelude::SliceRandom;
 use wait4::Wait4;
@@ -213,10 +214,93 @@ fn make_distr_plots(tests: &[Test], width: usize, is_tty: bool) -> Vec<String> {
     }
 }
 
+fn print_stats(tests: &[Test], is_tty: bool, log: &mut RunLog) {
+    let reset = match is_tty {
+        true => RESET,
+        false => "",
+    };
+
+    let test_color = |t: &Test| t.color(is_tty);
+
+    let stats: Vec<_> = tests.iter().map(|t| t.durations.stats()).collect();
+    let durations: Vec<_> = tests.iter().map(|t| &t.durations).collect();
+
+    let stats_str: Vec<_> = stats
+        .iter()
+        .map(|s: &Stats<Duration>| s.to_string())
+        .collect();
+
+    let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
+
+    let distr_plots = make_distr_plots(&tests, stats_width - 8, is_tty);
+
+    writeln!(log.both_log_and_stderr(), "").unwrap();
+    for index in 0..tests.len() {
+        let test = &tests[index];
+        let stats = &stats[index];
+        writeln!(
+            log.both_log_and_stderr(),
+            "{color}{name}{reset}: {stats}",
+            name = test.name,
+            color = test_color(test),
+            reset = reset,
+            stats = stats,
+        )
+        .unwrap();
+    }
+    for index in 0..tests.len() {
+        let test = &tests[index];
+        let distr_plot = &distr_plots[index];
+        eprintln!(
+            "{color}{name}{reset}: distr=[{plot}]",
+            name = test.name,
+            color = test_color(test),
+            reset = reset,
+            plot = distr_plot,
+        );
+    }
+
+    if tests.len() >= 2 {
+        for b_index in 1..tests.len() {
+            let degrees_of_freedom =
+                u64::min(stats[0].count as u64 - 1, stats[b_index].count as u64 - 1);
+            let t_star = t_table(degrees_of_freedom, TWO_SIDED_95);
+
+            // Half of a confidence interval
+            let conf_h = t_star
+                * f64::sqrt(
+                    stats[0].var_millis_sq() / (stats[0].count - 1) as f64
+                        + stats[b_index].var_millis_sq() / (stats[b_index].count - 1) as f64,
+                );
+
+            // Quarter of a confidence interval
+            let conf_q = conf_h / 2.0;
+
+            let b_a_min =
+                (stats[b_index].mean.millis_f64() - conf_q) / (stats[0].mean.millis_f64() + conf_q);
+            let b_a_max =
+                (stats[b_index].mean.millis_f64() + conf_q) / (stats[0].mean.millis_f64() - conf_q);
+
+            writeln!(
+                log.both_log_and_stderr(),
+                "{b_name}/{a_name}: {b_a:.3} {b_a_min:.3}..{b_a_max:.3} (95% conf)",
+                b_name = tests[b_index].name,
+                a_name = tests[0].name,
+                b_a = stats[b_index].mean / stats[0].mean,
+                b_a_min = b_a_min,
+                b_a_max = b_a_max,
+            )
+            .unwrap();
+        }
+    }
+
+    log.write_raw(&durations).unwrap();
+}
+
 fn main() {
     let opts: Opts = Opts::from_args();
 
-    let mut log = absh::RunLog::open();
+    let mut log = RunLog::open();
 
     let mut tests = Vec::new();
     tests.push(Test {
@@ -263,8 +347,6 @@ fn main() {
         true => (ansi::YELLOW, ansi::RESET),
         false => ("", ""),
     };
-
-    let test_color = |t: &Test| t.color(is_tty);
 
     eprintln!("Writing absh data to {}/", log.name().display());
     if let Some(last) = log.last() {
@@ -335,78 +417,6 @@ fn main() {
             continue;
         }
 
-        let stats: Vec<_> = tests.iter_mut().map(|t| t.durations.stats()).collect();
-        let durations: Vec<_> = tests.iter().map(|t| &t.durations).collect();
-
-        let stats_str: Vec<_> = stats
-            .iter()
-            .map(|s: &Stats<Duration>| s.to_string())
-            .collect();
-
-        let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
-
-        let distr_plots = make_distr_plots(&tests, stats_width - 8, is_tty);
-
-        writeln!(log.both_log_and_stderr(), "").unwrap();
-        for index in 0..tests.len() {
-            let test = &tests[index];
-            let stats = &stats[index];
-            writeln!(
-                log.both_log_and_stderr(),
-                "{color}{name}{reset}: {stats}",
-                name = test.name,
-                color = test_color(test),
-                reset = reset,
-                stats = stats,
-            )
-            .unwrap();
-        }
-        for index in 0..tests.len() {
-            let test = &tests[index];
-            let distr_plot = &distr_plots[index];
-            eprintln!(
-                "{color}{name}{reset}: distr=[{plot}]",
-                name = test.name,
-                color = test_color(test),
-                reset = reset,
-                plot = distr_plot,
-            );
-        }
-
-        if tests.len() >= 2 {
-            for b_index in 1..tests.len() {
-                let degrees_of_freedom =
-                    u64::min(stats[0].count as u64 - 1, stats[b_index].count as u64 - 1);
-                let t_star = t_table(degrees_of_freedom, TWO_SIDED_95);
-
-                // Half of a confidence interval
-                let conf_h = t_star
-                    * f64::sqrt(
-                        stats[0].var_millis_sq() / (stats[0].count - 1) as f64
-                            + stats[b_index].var_millis_sq() / (stats[b_index].count - 1) as f64,
-                    );
-
-                // Quarter of a confidence interval
-                let conf_q = conf_h / 2.0;
-
-                let b_a_min = (stats[b_index].mean.millis_f64() - conf_q)
-                    / (stats[0].mean.millis_f64() + conf_q);
-                let b_a_max = (stats[b_index].mean.millis_f64() + conf_q)
-                    / (stats[0].mean.millis_f64() - conf_q);
-
-                writeln!(
-                    log.both_log_and_stderr(),
-                    "{b_name}/{a_name}: {b_a:.3} {b_a_min:.3}..{b_a_max:.3} (95% conf)",
-                    b_name = tests[b_index].name,
-                    a_name = tests[0].name,
-                    b_a = stats[b_index].mean / stats[0].mean,
-                    b_a_min = b_a_min,
-                    b_a_max = b_a_max,
-                )
-                .unwrap();
-            }
-        }
-
-        log.write_raw(&durations).unwrap();
+        print_stats(&tests, is_tty, &mut log);
     }
 }
