@@ -14,6 +14,7 @@ use absh::student::t_table;
 use absh::student::TWO_SIDED_95;
 use absh::Duration;
 use absh::MemUsage;
+use absh::Number;
 use absh::Numbers;
 use absh::PlotHighlight;
 use absh::RunLog;
@@ -269,17 +270,17 @@ fn print_stats(tests: &[Test], is_tty: bool, log: &mut RunLog) {
             // Half of a confidence interval
             let conf_h = t_star
                 * f64::sqrt(
-                    stats[0].var_millis_sq() / (stats[0].count - 1) as f64
-                        + stats[b_index].var_millis_sq() / (stats[b_index].count - 1) as f64,
+                    stats[0].sigma_sq() / (stats[0].count - 1) as f64
+                        + stats[b_index].sigma_sq() / (stats[b_index].count - 1) as f64,
                 );
 
             // Quarter of a confidence interval
             let conf_q = conf_h / 2.0;
 
             let b_a_min =
-                (stats[b_index].mean.millis_f64() - conf_q) / (stats[0].mean.millis_f64() + conf_q);
+                (stats[b_index].mean.as_f64() - conf_q) / (stats[0].mean.as_f64() + conf_q);
             let b_a_max =
-                (stats[b_index].mean.millis_f64() + conf_q) / (stats[0].mean.millis_f64() - conf_q);
+                (stats[b_index].mean.as_f64() + conf_q) / (stats[0].mean.as_f64() - conf_q);
 
             writeln!(
                 log.both_log_and_stderr(),

@@ -1,6 +1,5 @@
 use crate::number::Number;
 use crate::numbers::Numbers;
-use crate::Duration;
 use std::fmt;
 
 pub struct Stats<T: Number> {
@@ -16,12 +15,10 @@ impl<T: Number> Stats<T> {
     fn se(&self) -> T {
         T::from_f64(self.std.as_f64() / f64::sqrt((self.count - 1) as f64))
     }
-}
 
-impl Stats<Duration> {
     /// sigma^2
-    pub fn var_millis_sq(&self) -> f64 {
-        let millis = self.std.millis_f64();
+    pub fn sigma_sq(&self) -> f64 {
+        let millis = self.std.as_f64();
         millis * millis
     }
 }
