@@ -215,7 +215,12 @@ fn make_distr_plots(tests: &[Test], width: usize, is_tty: bool) -> Vec<String> {
     }
 }
 
-fn print_stats(tests: &[Test], is_tty: bool, log: &mut RunLog) {
+fn print_stats<N: Number>(
+    tests: &[Test],
+    is_tty: bool,
+    log: &mut RunLog,
+    numbers: impl Fn(&Test) -> &Numbers<N>,
+) {
     let reset = match is_tty {
         true => RESET,
         false => "",
@@ -223,13 +228,10 @@ fn print_stats(tests: &[Test], is_tty: bool, log: &mut RunLog) {
 
     let test_color = |t: &Test| t.color(is_tty);
 
-    let stats: Vec<_> = tests.iter().map(|t| t.durations.stats()).collect();
-    let durations: Vec<_> = tests.iter().map(|t| &t.durations).collect();
+    let stats: Vec<_> = tests.iter().map(|t| numbers(t).stats()).collect();
+    let durations: Vec<_> = tests.iter().map(|t| numbers(t)).collect();
 
-    let stats_str: Vec<_> = stats
-        .iter()
-        .map(|s: &Stats<Duration>| s.to_string())
-        .collect();
+    let stats_str: Vec<_> = stats.iter().map(|s: &Stats<N>| s.to_string()).collect();
 
     let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
 
@@ -287,7 +289,7 @@ fn print_stats(tests: &[Test], is_tty: bool, log: &mut RunLog) {
                 "{b_name}/{a_name}: {b_a:.3} {b_a_min:.3}..{b_a_max:.3} (95% conf)",
                 b_name = tests[b_index].name,
                 a_name = tests[0].name,
-                b_a = stats[b_index].mean / stats[0].mean,
+                b_a = stats[b_index].mean.as_f64() / stats[0].mean.as_f64(),
                 b_a_min = b_a_min,
                 b_a_max = b_a_max,
             )
@@ -418,6 +420,6 @@ fn main() {
             continue;
         }
 
-        print_stats(&tests, is_tty, &mut log);
+        print_stats(&tests, is_tty, &mut log, |t| &t.durations);
     }
 }
