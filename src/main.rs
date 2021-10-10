@@ -172,18 +172,23 @@ fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) {
     }
 }
 
-fn make_distr_plots(tests: &[Test], width: usize, is_tty: bool) -> Vec<String> {
-    let min = tests.iter().map(|t| t.durations.min()).min().unwrap();
-    let max = tests.iter().map(|t| t.durations.max()).max().unwrap();
+fn make_distr_plots<N: Number>(
+    tests: &[Test],
+    width: usize,
+    is_tty: bool,
+    numbers: impl Fn(&Test) -> &Numbers<N>,
+) -> Vec<String> {
+    let min = tests.iter().map(|t| numbers(t).min()).min().unwrap();
+    let max = tests.iter().map(|t| numbers(t).max()).max().unwrap();
 
     let distr_halves: Vec<_> = tests
         .iter()
-        .map(|t| (t, t.durations.distr(width * 2, min, max)))
+        .map(|t| (t, numbers(t).distr(width * 2, min.clone(), max.clone())))
         .collect();
 
     let distr: Vec<_> = tests
         .iter()
-        .map(|t| (t, t.durations.distr(width, min, max)))
+        .map(|t| (t, numbers(t).distr(width, min.clone(), max.clone())))
         .collect();
 
     let max_height_halves = distr_halves
@@ -238,7 +243,7 @@ fn print_stats<N: Number>(
 
     let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
 
-    let distr_plots = make_distr_plots(&tests, stats_width - 8, is_tty);
+    let distr_plots = make_distr_plots(&tests, stats_width - 8, is_tty, numbers);
 
     writeln!(log.both_log_and_stderr(), "").unwrap();
     writeln!(log.both_log_and_stderr(), "{}:", name).unwrap();
@@ -373,6 +378,7 @@ fn main() {
 
         for test in &mut tests {
             test.durations.clear();
+            test.mem_usages.clear();
         }
 
         writeln!(log.both_log_and_stderr(), "").unwrap();
