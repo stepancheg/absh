@@ -151,7 +151,7 @@ fn run_test(log: &mut absh::RunLog, test: &mut Test) {
 
     writeln!(
         log.both_log_and_stderr(),
-        "{} finished in {}, max rss {} MiB",
+        "{} finished in {:3} s, max rss {} MiB",
         test.name,
         duration,
         max_rss.mib(),
@@ -430,9 +430,13 @@ fn main() {
             continue;
         }
 
-        print_stats(&tests, is_tty, &mut log, "CPU time", |t| &t.durations);
+        print_stats(&tests, is_tty, &mut log, "Time (in seconds)", |t| {
+            &t.durations
+        });
         if opts.mem {
-            print_stats(&tests, is_tty, &mut log, "Max RSS", |t| &t.mem_usages);
+            print_stats(&tests, is_tty, &mut log, "Max RSS (in megabytes)", |t| {
+                &t.mem_usages
+            });
         }
     }
 }
