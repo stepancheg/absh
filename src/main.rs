@@ -39,6 +39,14 @@ impl Test {
         }
     }
 
+    fn name_colored_if_tty(&self, is_tty: bool) -> String {
+        if is_tty {
+            format!("{}{}{}", self.color_if_tty, self.name, RESET)
+        } else {
+            self.name.to_string()
+        }
+    }
+
     fn plot_highlights(&self, is_tty: bool) -> PlotHighlight {
         match is_tty {
             true => PlotHighlight {
@@ -102,9 +110,14 @@ struct Opts {
     mem: bool,
 }
 
-fn run_test(log: &mut absh::RunLog, test: &mut Test) {
+fn run_test(log: &mut absh::RunLog, is_tty: bool, test: &mut Test) {
     writeln!(log.both_log_and_stderr()).unwrap();
-    writeln!(log.both_log_and_stderr(), "running test: {}", test.name).unwrap();
+    writeln!(
+        log.both_log_and_stderr(),
+        "running test: {}",
+        test.name_colored_if_tty(is_tty)
+    )
+    .unwrap();
     let warmup_lines = test.warmup.lines().collect::<Vec<_>>();
     if !warmup_lines.is_empty() {
         writeln!(log.both_log_and_stderr(), "running warmup script:").unwrap();
@@ -152,7 +165,7 @@ fn run_test(log: &mut absh::RunLog, test: &mut Test) {
     writeln!(
         log.both_log_and_stderr(),
         "{} finished in {:3} s, max rss {} MiB",
-        test.name,
+        test.name_colored_if_tty(is_tty),
         duration,
         max_rss.mib(),
     )
@@ -162,13 +175,13 @@ fn run_test(log: &mut absh::RunLog, test: &mut Test) {
     test.mem_usages.push(max_rss);
 }
 
-fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) {
+fn run_pair(log: &mut absh::RunLog, opts: &Opts, is_tty: bool, tests: &mut [Test]) {
     let mut indices: Vec<usize> = (0..tests.len()).collect();
     if opts.random_order {
         indices.shuffle(&mut rand::thread_rng());
     }
     for &index in &indices {
-        run_test(log, &mut tests[index]);
+        run_test(log, is_tty, &mut tests[index]);
     }
 }
 
@@ -374,7 +387,7 @@ fn main() {
     }
 
     if opts.ignore_first {
-        run_pair(&mut log, &opts, &mut tests);
+        run_pair(&mut log, &opts, is_tty, &mut tests);
 
         for test in &mut tests {
             test.durations.clear();
@@ -419,7 +432,7 @@ fn main() {
     }
 
     loop {
-        run_pair(&mut log, &opts, &mut tests);
+        run_pair(&mut log, &opts, is_tty, &mut tests);
 
         let min_duration_len = tests.iter_mut().map(|t| t.durations.len()).min().unwrap();
         if Some(min_duration_len) == opts.iterations.map(|n| n as usize) {
