@@ -80,6 +80,8 @@ struct Opts {
     c: Option<String>,
     #[structopt(short = "d", help = "D variant shell script")]
     d: Option<String>,
+    #[structopt(short = "e", help = "E variant shell script")]
+    e: Option<String>,
     #[structopt(short = "A", long = "a-warmup", help = "A variant warmup shell script")]
     aw: Option<String>,
     #[structopt(short = "B", long = "b-warmup", help = "B variant warmup shell script")]
@@ -88,6 +90,8 @@ struct Opts {
     cw: Option<String>,
     #[structopt(short = "D", long = "d-warmup", help = "D variant warmup shell script")]
     dw: Option<String>,
+    #[structopt(short = "E", long = "e-warmup", help = "E variant warmup shell script")]
+    ew: Option<String>,
     #[structopt(
         short = "r",
         long = "random-order",
@@ -336,36 +340,29 @@ fn main() {
         durations: Numbers::default(),
         mem_usages: Numbers::default(),
     });
-    if let Some(b) = opts.b.clone() {
-        tests.push(Test {
-            name: "B",
-            warmup: opts.bw.clone().unwrap_or(String::new()),
-            run: b,
-            color_if_tty: ansi::GREEN,
-            durations: Numbers::default(),
-            mem_usages: Numbers::default(),
-        });
+
+    fn parse_opt_test(
+        tests: &mut Vec<Test>,
+        name: &'static str,
+        color_if_tty: &'static str,
+        run: &Option<String>,
+        warmup: &Option<String>,
+    ) {
+        if let Some(run) = run.clone() {
+            tests.push(Test {
+                name,
+                warmup: warmup.clone().unwrap_or(String::new()),
+                run,
+                color_if_tty,
+                durations: Numbers::default(),
+                mem_usages: Numbers::default(),
+            });
+        }
     }
-    if let Some(c) = opts.c.clone() {
-        tests.push(Test {
-            name: "C",
-            warmup: opts.cw.clone().unwrap_or(String::new()),
-            run: c,
-            color_if_tty: ansi::BLUE,
-            durations: Numbers::default(),
-            mem_usages: Numbers::default(),
-        });
-    }
-    if let Some(d) = opts.d.clone() {
-        tests.push(Test {
-            name: "D",
-            warmup: opts.dw.clone().unwrap_or(String::new()),
-            run: d,
-            color_if_tty: ansi::MAGENTA,
-            durations: Numbers::default(),
-            mem_usages: Numbers::default(),
-        });
-    }
+    parse_opt_test(&mut tests, "B", ansi::GREEN, &opts.b, &opts.bw);
+    parse_opt_test(&mut tests, "C", ansi::BLUE, &opts.c, &opts.cw);
+    parse_opt_test(&mut tests, "D", ansi::MAGENTA, &opts.d, &opts.dw);
+    parse_opt_test(&mut tests, "E", ansi::CYAN, &opts.e, &opts.ew);
 
     let is_tty = !cfg!(windows) && atty::is(atty::Stream::Stderr);
     let (yellow, reset) = match is_tty {

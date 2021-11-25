@@ -10,6 +10,8 @@ pub const YELLOW: &str = "\x1B[33m";
 pub const BLUE: &str = "\x1B[34m";
 /// Magenta color
 pub const MAGENTA: &str = "\x1B[35m";
+/// Cyan color
+pub const CYAN: &str = "\x1B[36m";
 /// White background
 pub const WHITE_BG: &str = "\x1B[47m";
 /// Reset color
