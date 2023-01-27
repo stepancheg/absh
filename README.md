@@ -1,6 +1,6 @@
 # absh: A/B testing for shell scripts
 
-```
+```sh
 $ absh \
   -a "test a" \
   -b "test b" \
@@ -18,3 +18,11 @@ A: distr=[        ▁▁   ▃▃▃▅▂▅▆▃▄▇▆▃▅▂▁▂▅�
 B: distr=[   ▁▁▁▁▄▅▄▇▅▇█▂▃▅▃▅▃▁▁▂▃▃▂▅▂▃▅▆▂▅▃▅▁▁▃ ▂▁▁▁▁                 ]
 B/A: 0.979 0.975..0.983 (95% conf)
 ```
+
+## How to install
+
+```sh
+cargo install --git https://github.com/stepancheg/absh
+```
+
+Cargo is a Rust package manager and build system. It can be downloaded [from rustup.rs](https://rustup.rs/).
