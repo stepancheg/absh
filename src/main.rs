@@ -3,48 +3,22 @@ use std::fmt::Write as _;
 use std::time::Instant;
 
 use absh::ansi;
-use absh::plot_halves_u64;
-use absh::plot_u64;
+use absh::measure::MaxRss;
+use absh::measure::MeasureDyn;
+use absh::measure::WallTime;
 use absh::sh::spawn_sh;
 use absh::student::t_table;
 use absh::student::TWO_SIDED_95;
+use absh::test::Test;
 use absh::test_name::TestName;
 use absh::Duration;
 use absh::MemUsage;
 use absh::Number;
 use absh::Numbers;
-use absh::PlotHighlight;
 use absh::RunLog;
-use absh::Stats;
 use clap::Parser;
 use rand::prelude::SliceRandom;
 use wait4::Wait4;
-
-struct Test {
-    name: TestName,
-    warmup: String,
-    run: String,
-    durations: Numbers<Duration>,
-    mem_usages: Numbers<MemUsage>,
-}
-
-impl Test {
-    fn plot_highlights(&self) -> PlotHighlight {
-        PlotHighlight {
-            non_zero: format!("{}", self.name.color().to_owned()),
-            zero: format!("{}", ansi::WHITE_BG),
-            reset: ansi::RESET.to_owned(),
-        }
-    }
-
-    fn plot_halves_highlights(&self) -> PlotHighlight {
-        PlotHighlight {
-            non_zero: format!("{}", self.name.color().to_owned()),
-            zero: "".to_owned(),
-            reset: ansi::RESET.to_owned(),
-        }
-    }
-}
 
 #[derive(clap::Parser, Debug)]
 #[command(about = "A/B testing for shell scripts")]
@@ -155,66 +129,23 @@ fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) -> anyhow::
     Ok(())
 }
 
-fn make_distr_plots<N: Number>(
-    tests: &[Test],
-    width: usize,
-    numbers: impl Fn(&Test) -> &Numbers<N>,
-) -> anyhow::Result<Vec<String>> {
-    let min = tests.iter().map(|t| numbers(t).min()).min().unwrap();
-    let max = tests.iter().map(|t| numbers(t).max()).max().unwrap();
-
-    let distr_halves: Vec<_> = tests
-        .iter()
-        .map(|t| (t, numbers(t).distr(width * 2, min.clone(), max.clone())))
-        .collect();
-
-    let distr: Vec<_> = tests
-        .iter()
-        .map(|t| (t, numbers(t).distr(width, min.clone(), max.clone())))
-        .collect();
-
-    let max_height_halves = distr_halves
-        .iter()
-        .map(|(_, d)| d.max())
-        .max()
-        .unwrap()
-        .clone();
-    let max_height = distr.iter().map(|(_, d)| d.max()).max().unwrap().clone();
-
-    let distr_plots = distr
-        .iter()
-        .map(|(t, d)| plot_u64(&d.counts, max_height, &t.plot_highlights()))
-        .collect();
-
-    let distr_halves_plots = distr_halves
-        .iter()
-        .map(|(t, d)| plot_halves_u64(&d.counts, max_height_halves, &t.plot_halves_highlights()))
-        .collect();
-
-    if max_height_halves <= 2 {
-        Ok(distr_halves_plots)
-    } else {
-        Ok(distr_plots)
-    }
-}
-
 fn render_stats<N: Number>(
     tests: &[Test],
     include_distr: bool,
-    name: &str,
+    measure: &dyn MeasureDyn,
     numbers: impl Fn(&Test) -> &Numbers<N>,
 ) -> anyhow::Result<String> {
     let mut r = String::new();
 
     let stats: Vec<_> = tests.iter().map(|t| numbers(t).stats()).collect();
 
-    let stats_str: Vec<_> = Stats::display_stats(&stats);
+    let stats_str: Vec<_> = measure.display_stats(tests);
 
     let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
 
-    let distr_plots = make_distr_plots(&tests, stats_width - 8, numbers)?;
+    let distr_plots = measure.make_distr_plots(&tests, stats_width - 8)?;
 
-    writeln!(r, "{}:", name)?;
+    writeln!(r, "{}:", measure.name())?;
     for index in 0..tests.len() {
         let test = &tests[index];
         let stats = &stats_str[index];
@@ -380,24 +311,14 @@ fn main() -> anyhow::Result<()> {
 
         writeln!(log.both_log_and_stderr(), "")?;
 
-        let mut graph_full = render_stats(&tests, true, "Time (in seconds)", |t| &t.durations)?;
-        let mut graph_short = render_stats(&tests, false, "Time (in seconds)", |t| &t.durations)?;
+        let mut graph_full = render_stats(&tests, true, &WallTime, |t| &t.durations)?;
+        let mut graph_short = render_stats(&tests, false, &WallTime, |t| &t.durations)?;
 
         if opts.mem {
             graph_full.push_str("\n");
             graph_short.push_str("\n");
-            graph_full.push_str(&render_stats(
-                &tests,
-                true,
-                "Max RSS (in megabytes)",
-                |t| &t.mem_usages,
-            )?);
-            graph_short.push_str(&render_stats(
-                &tests,
-                false,
-                "Max RSS (in megabytes)",
-                |t| &t.mem_usages,
-            )?);
+            graph_full.push_str(&render_stats(&tests, true, &MaxRss, |t| &t.mem_usages)?);
+            graph_short.push_str(&render_stats(&tests, false, &MaxRss, |t| &t.mem_usages)?);
         }
 
         write!(log.stderr_only(), "{}", graph_full)?;

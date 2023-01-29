@@ -1,6 +1,6 @@
 use crate::number::Number;
 use crate::stats::stats;
-use crate::Stats;
+use crate::stats::Stats;
 
 pub struct Distr {
     pub counts: Vec<u64>,
