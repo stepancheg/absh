@@ -8,6 +8,7 @@ edition = "2018"
 doctest = false
 
 [dependencies]
+anyhow = "1.0.68"
 clap = { version = "4.1.4", features = ["derive", "color"] }
 atty = "=0.2"
 rand = "0.7.3"

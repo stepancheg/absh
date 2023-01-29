@@ -83,55 +83,52 @@ struct Opts {
     mem: bool,
 }
 
-fn run_test(log: &mut absh::RunLog, test: &mut Test) {
-    writeln!(log.both_log_and_stderr()).unwrap();
+fn run_test(log: &mut absh::RunLog, test: &mut Test) -> anyhow::Result<()> {
+    writeln!(log.both_log_and_stderr())?;
     writeln!(
         log.both_log_and_stderr(),
         "running test: {}",
         test.name.name_colored()
-    )
-    .unwrap();
+    )?;
     let warmup_lines = test.warmup.lines().collect::<Vec<_>>();
     if !warmup_lines.is_empty() {
-        writeln!(log.both_log_and_stderr(), "running warmup script:").unwrap();
+        writeln!(log.both_log_and_stderr(), "running warmup script:")?;
         for line in &warmup_lines {
-            writeln!(log.both_log_and_stderr(), "    {}", line).unwrap();
+            writeln!(log.both_log_and_stderr(), "    {}", line)?;
         }
     }
 
     let mut process = spawn_sh(&test.warmup);
-    let status = process.wait4().unwrap();
+    let status = process.wait4()?;
     if !status.status.success() {
         writeln!(
             log.both_log_and_stderr(),
             "warmup failed: {}",
             status.status
-        )
-        .unwrap();
-        return;
+        )?;
+        return Ok(());
     }
 
-    writeln!(log.both_log_and_stderr(), "running script:").unwrap();
+    writeln!(log.both_log_and_stderr(), "running script:")?;
     let lines = test.run.lines().collect::<Vec<_>>();
     for line in &lines {
-        writeln!(log.both_log_and_stderr(), "    {}", line).unwrap();
+        writeln!(log.both_log_and_stderr(), "    {}", line)?;
     }
 
     let start = Instant::now();
 
     let mut process = spawn_sh(&test.run);
-    let status = process.wait4().unwrap();
+    let status = process.wait4()?;
     if !status.status.success() {
         writeln!(
             log.both_log_and_stderr(),
             "script failed: {}",
             status.status
-        )
-        .unwrap();
-        return;
+        )?;
+        return Ok(());
     }
 
-    let duration = Duration::from_nanos(start.elapsed().as_nanos().try_into().unwrap());
+    let duration = Duration::from_nanos(start.elapsed().as_nanos().try_into()?);
     assert!(status.rusage.maxrss != 0, "maxrss not available");
     let max_rss = MemUsage::from_bytes(status.rusage.maxrss);
 
@@ -141,28 +138,29 @@ fn run_test(log: &mut absh::RunLog, test: &mut Test) {
         test.name.name_colored(),
         duration,
         max_rss.mib(),
-    )
-    .unwrap();
+    )?;
 
     test.durations.push(duration);
     test.mem_usages.push(max_rss);
+    Ok(())
 }
 
-fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) {
+fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) -> anyhow::Result<()> {
     let mut indices: Vec<usize> = (0..tests.len()).collect();
     if opts.random_order {
         indices.shuffle(&mut rand::thread_rng());
     }
     for &index in &indices {
-        run_test(log, &mut tests[index]);
+        run_test(log, &mut tests[index])?;
     }
+    Ok(())
 }
 
 fn make_distr_plots<N: Number>(
     tests: &[Test],
     width: usize,
     numbers: impl Fn(&Test) -> &Numbers<N>,
-) -> Vec<String> {
+) -> anyhow::Result<Vec<String>> {
     let min = tests.iter().map(|t| numbers(t).min()).min().unwrap();
     let max = tests.iter().map(|t| numbers(t).max()).max().unwrap();
 
@@ -195,9 +193,9 @@ fn make_distr_plots<N: Number>(
         .collect();
 
     if max_height_halves <= 2 {
-        distr_halves_plots
+        Ok(distr_halves_plots)
     } else {
-        distr_plots
+        Ok(distr_plots)
     }
 }
 
@@ -206,7 +204,7 @@ fn print_stats<N: Number>(
     log: &mut RunLog,
     name: &str,
     numbers: impl Fn(&Test) -> &Numbers<N>,
-) {
+) -> anyhow::Result<()> {
     let test_color = |t: &Test| t.name.color();
 
     let stats: Vec<_> = tests.iter().map(|t| numbers(t).stats()).collect();
@@ -216,10 +214,10 @@ fn print_stats<N: Number>(
 
     let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
 
-    let distr_plots = make_distr_plots(&tests, stats_width - 8, numbers);
+    let distr_plots = make_distr_plots(&tests, stats_width - 8, numbers)?;
 
-    writeln!(log.both_log_and_stderr(), "").unwrap();
-    writeln!(log.both_log_and_stderr(), "{}:", name).unwrap();
+    writeln!(log.both_log_and_stderr(), "")?;
+    writeln!(log.both_log_and_stderr(), "{}:", name)?;
     for index in 0..tests.len() {
         let test = &tests[index];
         let stats = &stats_str[index];
@@ -241,8 +239,7 @@ fn print_stats<N: Number>(
             name = test.name,
             color = test_color(test),
             reset = ansi::RESET,
-        )
-        .unwrap();
+        )?;
     }
 
     if tests.len() >= 2 {
@@ -274,15 +271,15 @@ fn print_stats<N: Number>(
                 b_a = stats[b_index].mean.as_f64() / stats[0].mean.as_f64(),
                 b_a_min = b_a_min,
                 b_a_max = b_a_max,
-            )
-            .unwrap();
+            )?;
         }
     }
 
-    log.write_raw(&durations).unwrap();
+    log.write_raw(&durations)?;
+    Ok(())
 }
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     let opts: Opts = Opts::parse();
 
     let mut log = RunLog::open();
@@ -331,7 +328,7 @@ fn main() {
     }
 
     if opts.ignore_first {
-        run_pair(&mut log, &opts, &mut tests);
+        run_pair(&mut log, &opts, &mut tests)?;
 
         for test in &mut tests {
             test.durations.clear();
@@ -376,7 +373,7 @@ fn main() {
     }
 
     loop {
-        run_pair(&mut log, &opts, &mut tests);
+        run_pair(&mut log, &opts, &mut tests)?;
 
         let min_duration_len = tests.iter_mut().map(|t| t.durations.len()).min().unwrap();
         if Some(min_duration_len) == opts.iterations.map(|n| n as usize) {
@@ -387,11 +384,13 @@ fn main() {
             continue;
         }
 
-        print_stats(&tests, &mut log, "Time (in seconds)", |t| &t.durations);
+        print_stats(&tests, &mut log, "Time (in seconds)", |t| &t.durations)?;
         if opts.mem {
             print_stats(&tests, &mut log, "Max RSS (in megabytes)", |t| {
                 &t.mem_usages
-            });
+            })?;
         }
     }
+
+    Ok(())
 }
