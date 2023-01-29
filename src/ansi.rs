@@ -1,3 +1,4 @@
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 /// Green color
@@ -19,10 +20,8 @@ pub const RESET: &str = "\x1B[0m";
 
 // https://en.wikipedia.org/wiki/ANSI_escape_code#CSIsection
 pub fn strip_csi(s: &str) -> String {
-    Regex::new("\x1b\\[[0-9]+[a-zA-Z]")
-        .unwrap()
-        .replace_all(s, "")
-        .into_owned()
+    static REGEX: Lazy<Regex> = Lazy::new(|| Regex::new("\x1b\\[[0-9]+[a-zA-Z]").unwrap());
+    REGEX.replace_all(s, "").into_owned()
 }
 
 #[cfg(test)]
