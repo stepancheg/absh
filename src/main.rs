@@ -1,7 +1,5 @@
-use clap::Parser;
 use std::convert::TryInto;
 use std::fmt::Write as _;
-
 use std::time::Instant;
 
 use absh::ansi;
@@ -18,6 +16,7 @@ use absh::Numbers;
 use absh::PlotHighlight;
 use absh::RunLog;
 use absh::Stats;
+use clap::Parser;
 use rand::prelude::SliceRandom;
 use wait4::Wait4;
 
@@ -277,32 +276,6 @@ fn render_stats<N: Number>(
     Ok(r)
 }
 
-fn print_stats<N: Number>(
-    tests: &[Test],
-    log: &mut RunLog,
-    name: &str,
-    numbers: impl Fn(&Test) -> &Numbers<N>,
-) -> anyhow::Result<()> {
-    writeln!(log.both_log_and_stderr(), "")?;
-
-    write!(
-        log.stderr_only(),
-        "{}",
-        render_stats(tests, true, name, &numbers)?
-    )?;
-    write!(
-        log.log_only(),
-        "{}",
-        render_stats(tests, false, name, &numbers)?
-    )?;
-
-    let durations: Vec<_> = tests.iter().map(|t| numbers(t)).collect();
-
-    log.write_raw(&durations)?;
-
-    Ok(())
-}
-
 fn main() -> anyhow::Result<()> {
     let opts: Opts = Opts::parse();
 
@@ -405,12 +378,35 @@ fn main() -> anyhow::Result<()> {
             continue;
         }
 
-        print_stats(&tests, &mut log, "Time (in seconds)", |t| &t.durations)?;
+        writeln!(log.both_log_and_stderr(), "")?;
+
+        let mut graph_full = render_stats(&tests, true, "Time (in seconds)", |t| &t.durations)?;
+        let mut graph_short = render_stats(&tests, false, "Time (in seconds)", |t| &t.durations)?;
+
         if opts.mem {
-            print_stats(&tests, &mut log, "Max RSS (in megabytes)", |t| {
-                &t.mem_usages
-            })?;
+            graph_full.push_str("\n");
+            graph_short.push_str("\n");
+            graph_full.push_str(&render_stats(
+                &tests,
+                true,
+                "Max RSS (in megabytes)",
+                |t| &t.mem_usages,
+            )?);
+            graph_short.push_str(&render_stats(
+                &tests,
+                false,
+                "Max RSS (in megabytes)",
+                |t| &t.mem_usages,
+            )?);
         }
+
+        write!(log.stderr_only(), "{}", graph_full)?;
+        write!(log.log_only(), "{}", graph_short,)?;
+
+        log.write_graph(&graph_full)?;
+
+        let durations: Vec<_> = tests.iter().map(|t| &t.durations).collect();
+        log.write_raw(&durations)?;
     }
 
     Ok(())

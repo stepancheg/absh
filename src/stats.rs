@@ -1,7 +1,8 @@
-use crate::number::Number;
-use crate::numbers::Numbers;
 use std::fmt;
 use std::slice;
+
+use crate::number::Number;
+use crate::numbers::Numbers;
 
 pub struct Stats<T: Number> {
     pub count: u64,

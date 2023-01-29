@@ -111,13 +111,14 @@ impl<T: Number> Numbers<T> {
 
 #[cfg(test)]
 mod test {
-    use crate::numbers::Number;
-    use crate::numbers::Numbers;
     use std::fmt;
     use std::iter::Sum;
     use std::ops::Add;
     use std::ops::Div;
     use std::ops::Sub;
+
+    use crate::numbers::Number;
+    use crate::numbers::Numbers;
 
     #[derive(Copy, Clone, Default, PartialOrd, Eq, PartialEq, Ord, Debug)]
     struct TestNumber(u64);

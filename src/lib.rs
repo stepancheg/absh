@@ -14,6 +14,7 @@ pub mod ansi;
 mod bars;
 pub mod console_writer;
 mod duration;
+pub mod fs_util;
 pub mod maybe_strip_csi_writer;
 mod mem_usage;
 mod number;

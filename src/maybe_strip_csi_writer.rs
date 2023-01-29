@@ -1,7 +1,8 @@
-use crate::ansi::strip_csi;
 use std::fmt;
 use std::fmt::Write;
 use std::io;
+
+use crate::ansi::strip_csi;
 
 pub struct MaybeStripCsiWriter<W: io::Write> {
     pub inner: W,

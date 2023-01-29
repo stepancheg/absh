@@ -1,5 +1,6 @@
-use crate::ansi;
 use std::fmt;
+
+use crate::ansi;
 
 #[derive(Clone, Copy, Debug)]
 pub enum TestName {

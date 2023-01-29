@@ -3,22 +3,21 @@ use std::fmt;
 use std::fmt::Write as _;
 use std::fs;
 use std::fs::File;
-use std::io;
 use std::os::unix;
 use std::path::Path;
 use std::path::PathBuf;
 use std::time::SystemTime;
 
+use crate::ansi::strip_csi;
 use crate::console_writer::ConsoleWriter;
+use crate::fs_util::write_using_temp;
+use crate::maybe_strip_csi_writer::MaybeStripCsiWriter;
 use crate::numbers::Numbers;
 use crate::shell::shell_quote_args;
 use crate::Number;
 
-use crate::maybe_strip_csi_writer::MaybeStripCsiWriter;
-
 pub struct RunLog {
     name: PathBuf,
-    raw: PathBuf,
     last: Option<PathBuf>,
     file: File,
     console_writer: ConsoleWriter,
@@ -53,9 +52,6 @@ impl RunLog {
 
         fs::create_dir_all(&name).expect(&format!("failed to create dir {}", name.display()));
 
-        let mut raw = name.clone();
-        raw.push("raw");
-
         let mut log = name.clone();
         log.push("log");
 
@@ -78,7 +74,6 @@ impl RunLog {
             name,
             file,
             last,
-            raw,
         }
     }
 
@@ -97,7 +92,7 @@ impl RunLog {
         &mut self.console_writer
     }
 
-    pub fn write_raw<N: Number>(&mut self, durations: &[&Numbers<N>]) -> io::Result<()> {
+    pub fn write_raw<N: Number>(&mut self, durations: &[&Numbers<N>]) -> anyhow::Result<()> {
         let mut content = String::new();
         fn join<N: Number>(r: &mut String, ds: &Numbers<N>) {
             for (i, d) in ds.iter().enumerate() {
@@ -113,13 +108,20 @@ impl RunLog {
             join(&mut content, d);
         }
 
-        fs::write(&self.raw, content)
+        write_using_temp(self.name.join("raw"), content)?;
+        Ok(())
+    }
+
+    pub fn write_graph(&mut self, graph: &str) -> anyhow::Result<()> {
+        write_using_temp(self.name.join("graph"), graph)?;
+        write_using_temp(self.name.join("graph-bw"), strip_csi(graph))?;
+        Ok(())
     }
 
     pub fn write_args(&mut self) -> anyhow::Result<()> {
         let mut args = shell_quote_args(env::args());
         args.push_str("\n");
-        fs::write(self.name.join("args"), args)?;
+        write_using_temp(self.name.join("args"), args)?;
         Ok(())
     }
 }

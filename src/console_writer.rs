@@ -1,5 +1,6 @@
-use crate::ansi::strip_csi;
 use std::fmt;
+
+use crate::ansi::strip_csi;
 
 #[derive(Debug)]
 pub struct ConsoleWriter {

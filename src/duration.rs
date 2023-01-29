@@ -1,10 +1,11 @@
-use crate::number::Number;
 use std::fmt;
 use std::iter::Sum;
 use std::ops::Add;
 use std::ops::AddAssign;
 use std::ops::Div;
 use std::ops::Sub;
+
+use crate::number::Number;
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Default, Debug)]
 pub struct Duration {
