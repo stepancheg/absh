@@ -1,4 +1,5 @@
 use crate::distr_plot::make_distr_plots;
+use crate::render_stats::render_stats;
 use crate::stats::Stats;
 use crate::test::Test;
 use crate::Duration;
@@ -44,6 +45,7 @@ pub trait MeasureDyn {
     fn name(&self) -> &str;
     fn make_distr_plots(&self, tests: &[Test], width: usize) -> anyhow::Result<Vec<String>>;
     fn display_stats(&self, tests: &[Test]) -> Vec<String>;
+    fn render_stats(&self, tests: &[Test], include_distr: bool) -> anyhow::Result<String>;
 }
 
 impl<M: Measure> MeasureDyn for M {
@@ -58,5 +60,9 @@ impl<M: Measure> MeasureDyn for M {
     fn display_stats(&self, tests: &[Test]) -> Vec<String> {
         let stats: Vec<_> = tests.iter().map(|t| Self::numbers(t).stats()).collect();
         Stats::display_stats(&stats)
+    }
+
+    fn render_stats(&self, tests: &[Test], include_distr: bool) -> anyhow::Result<String> {
+        render_stats(tests, include_distr, self, Self::numbers)
     }
 }

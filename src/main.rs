@@ -7,13 +7,10 @@ use absh::measure::MaxRss;
 use absh::measure::MeasureDyn;
 use absh::measure::WallTime;
 use absh::sh::spawn_sh;
-use absh::student::t_table;
-use absh::student::TWO_SIDED_95;
 use absh::test::Test;
 use absh::test_name::TestName;
 use absh::Duration;
 use absh::MemUsage;
-use absh::Number;
 use absh::Numbers;
 use absh::RunLog;
 use clap::Parser;
@@ -129,84 +126,6 @@ fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) -> anyhow::
     Ok(())
 }
 
-fn render_stats<N: Number>(
-    tests: &[Test],
-    include_distr: bool,
-    measure: &dyn MeasureDyn,
-    numbers: impl Fn(&Test) -> &Numbers<N>,
-) -> anyhow::Result<String> {
-    let mut r = String::new();
-
-    let stats: Vec<_> = tests.iter().map(|t| numbers(t).stats()).collect();
-
-    let stats_str: Vec<_> = measure.display_stats(tests);
-
-    let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
-
-    let distr_plots = measure.make_distr_plots(&tests, stats_width - 8)?;
-
-    writeln!(r, "{}:", measure.name())?;
-    for index in 0..tests.len() {
-        let test = &tests[index];
-        let stats = &stats_str[index];
-        writeln!(
-            r,
-            "{color}{name}{reset}: {stats}",
-            name = test.name,
-            color = test.name.color(),
-            reset = ansi::RESET,
-        )?;
-    }
-    for index in 0..tests.len() {
-        let test = &tests[index];
-        let plot = &distr_plots[index];
-        if include_distr {
-            writeln!(
-                r,
-                "{color}{name}{reset}: distr=[{plot}]",
-                name = test.name,
-                color = test.name.color(),
-                reset = ansi::RESET,
-            )?;
-        }
-    }
-
-    if tests.len() >= 2 {
-        for b_index in 1..tests.len() {
-            let degrees_of_freedom =
-                u64::min(stats[0].count as u64 - 1, stats[b_index].count as u64 - 1);
-            let t_star = t_table(degrees_of_freedom, TWO_SIDED_95);
-
-            // Half of a confidence interval
-            let conf_h = t_star
-                * f64::sqrt(
-                    stats[0].sigma_sq() / (stats[0].count - 1) as f64
-                        + stats[b_index].sigma_sq() / (stats[b_index].count - 1) as f64,
-                );
-
-            // Quarter of a confidence interval
-            let conf_q = conf_h / 2.0;
-
-            let b_a_min =
-                (stats[b_index].mean.as_f64() - conf_q) / (stats[0].mean.as_f64() + conf_q);
-            let b_a_max =
-                (stats[b_index].mean.as_f64() + conf_q) / (stats[0].mean.as_f64() - conf_q);
-
-            writeln!(
-                r,
-                "{b_name}/{a_name}: {b_a:.3} {b_a_min:.3}..{b_a_max:.3} (95% conf)",
-                b_name = tests[b_index].name,
-                a_name = tests[0].name,
-                b_a = stats[b_index].mean.as_f64() / stats[0].mean.as_f64(),
-                b_a_min = b_a_min,
-                b_a_max = b_a_max,
-            )?;
-        }
-    }
-
-    Ok(r)
-}
-
 fn main() -> anyhow::Result<()> {
     let opts: Opts = Opts::parse();
 
@@ -311,14 +230,14 @@ fn main() -> anyhow::Result<()> {
 
         writeln!(log.both_log_and_stderr(), "")?;
 
-        let mut graph_full = render_stats(&tests, true, &WallTime, |t| &t.durations)?;
-        let mut graph_short = render_stats(&tests, false, &WallTime, |t| &t.durations)?;
+        let mut graph_full = WallTime.render_stats(&tests, true)?;
+        let mut graph_short = WallTime.render_stats(&tests, false)?;
 
         if opts.mem {
             graph_full.push_str("\n");
             graph_short.push_str("\n");
-            graph_full.push_str(&render_stats(&tests, true, &MaxRss, |t| &t.mem_usages)?);
-            graph_short.push_str(&render_stats(&tests, false, &MaxRss, |t| &t.mem_usages)?);
+            graph_full.push_str(&MaxRss.render_stats(&tests, true)?);
+            graph_short.push_str(&MaxRss.render_stats(&tests, false)?);
         }
 
         write!(log.stderr_only(), "{}", graph_full)?;

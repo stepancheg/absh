@@ -20,6 +20,7 @@ pub mod measure;
 mod mem_usage;
 mod number;
 mod numbers;
+pub mod render_stats;
 mod run_log;
 pub mod sh;
 pub mod shell;
