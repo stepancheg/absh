@@ -12,6 +12,7 @@ use absh::plot_u64;
 use absh::sh::spawn_sh;
 use absh::student::t_table;
 use absh::student::TWO_SIDED_95;
+use absh::test_name::TestName;
 use absh::Duration;
 use absh::MemUsage;
 use absh::Number;
@@ -23,10 +24,9 @@ use rand::prelude::SliceRandom;
 use wait4::Wait4;
 
 struct Test {
-    name: &'static str,
+    name: TestName,
     warmup: String,
     run: String,
-    color_if_tty: &'static str,
     durations: Numbers<Duration>,
     mem_usages: Numbers<MemUsage>,
 }
@@ -34,14 +34,14 @@ struct Test {
 impl Test {
     fn color(&self, is_tty: bool) -> &'static str {
         match is_tty {
-            true => self.color_if_tty,
+            true => self.name.color(),
             false => "",
         }
     }
 
     fn name_colored_if_tty(&self, is_tty: bool) -> String {
         if is_tty {
-            format!("{}{}{}", self.color_if_tty, self.name, RESET)
+            format!("{}{}{}", self.name.color(), self.name, RESET)
         } else {
             self.name.to_string()
         }
@@ -50,7 +50,7 @@ impl Test {
     fn plot_highlights(&self, is_tty: bool) -> PlotHighlight {
         match is_tty {
             true => PlotHighlight {
-                non_zero: format!("{}", self.color_if_tty.to_owned()),
+                non_zero: format!("{}", self.name.color().to_owned()),
                 zero: format!("{}", ansi::WHITE_BG),
                 reset: RESET.to_owned(),
             },
@@ -61,7 +61,7 @@ impl Test {
     fn plot_halves_highlights(&self, is_tty: bool) -> PlotHighlight {
         match is_tty {
             true => PlotHighlight {
-                non_zero: format!("{}", self.color_if_tty.to_owned()),
+                non_zero: format!("{}", self.name.color().to_owned()),
                 zero: "".to_owned(),
                 reset: RESET.to_owned(),
             },
@@ -329,18 +329,16 @@ fn main() {
 
     let mut tests = Vec::new();
     tests.push(Test {
-        name: "A",
+        name: TestName::A,
         warmup: opts.aw.clone().unwrap_or(String::new()),
         run: opts.a.clone(),
-        color_if_tty: ansi::RED,
         durations: Numbers::default(),
         mem_usages: Numbers::default(),
     });
 
     fn parse_opt_test(
         tests: &mut Vec<Test>,
-        name: &'static str,
-        color_if_tty: &'static str,
+        name: TestName,
         run: &Option<String>,
         warmup: &Option<String>,
     ) {
@@ -349,16 +347,15 @@ fn main() {
                 name,
                 warmup: warmup.clone().unwrap_or(String::new()),
                 run,
-                color_if_tty,
                 durations: Numbers::default(),
                 mem_usages: Numbers::default(),
             });
         }
     }
-    parse_opt_test(&mut tests, "B", ansi::GREEN, &opts.b, &opts.bw);
-    parse_opt_test(&mut tests, "C", ansi::BLUE, &opts.c, &opts.cw);
-    parse_opt_test(&mut tests, "D", ansi::MAGENTA, &opts.d, &opts.dw);
-    parse_opt_test(&mut tests, "E", ansi::CYAN, &opts.e, &opts.ew);
+    parse_opt_test(&mut tests, TestName::B, &opts.b, &opts.bw);
+    parse_opt_test(&mut tests, TestName::C, &opts.c, &opts.cw);
+    parse_opt_test(&mut tests, TestName::D, &opts.d, &opts.dw);
+    parse_opt_test(&mut tests, TestName::E, &opts.e, &opts.ew);
 
     let is_tty = !cfg!(windows) && atty::is(atty::Stream::Stderr);
     let (yellow, reset) = match is_tty {

@@ -20,3 +20,4 @@ mod run_log;
 pub mod sh;
 mod stats;
 pub mod student;
+pub mod test_name;
