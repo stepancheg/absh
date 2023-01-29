@@ -9,12 +9,12 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::time::SystemTime;
 
-use crate::ansi::strip_csi;
 use crate::console_writer::ConsoleWriter;
 use crate::numbers::Numbers;
 use crate::shell::shell_quote_args;
 use crate::Number;
-use std::io::Write;
+
+use crate::maybe_strip_csi_writer::MaybeStripCsiWriter;
 
 pub struct RunLog {
     name: PathBuf,
@@ -86,8 +86,11 @@ impl RunLog {
         BothLogAndStderr { log: self }
     }
 
-    pub fn log_only(&mut self) -> &mut File {
-        &mut self.file
+    pub fn log_only(&mut self) -> impl fmt::Write + '_ {
+        MaybeStripCsiWriter {
+            inner: &mut self.file,
+            strip: true,
+        }
     }
 
     pub fn stderr_only(&mut self) -> &mut ConsoleWriter {
@@ -124,11 +127,7 @@ impl RunLog {
 impl fmt::Write for BothLogAndStderr<'_> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         self.log.console_writer.write_str(s)?;
-        let black_and_white = strip_csi(s);
-        self.log
-            .log_only()
-            .write(black_and_white.as_bytes())
-            .map_err(|_| fmt::Error)?;
+        write!(self.log.log_only(), "{}", s)?;
         Ok(())
     }
 }

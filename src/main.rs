@@ -1,7 +1,7 @@
 use clap::Parser;
 use std::convert::TryInto;
 use std::fmt::Write as _;
-use std::io::Write;
+
 use std::time::Instant;
 
 use absh::ansi;
@@ -199,14 +199,15 @@ fn make_distr_plots<N: Number>(
     }
 }
 
-fn print_stats<N: Number>(
+fn render_stats<N: Number>(
     tests: &[Test],
-    log: &mut RunLog,
+    include_distr: bool,
     name: &str,
     numbers: impl Fn(&Test) -> &Numbers<N>,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<String> {
+    let mut r = String::new();
+
     let stats: Vec<_> = tests.iter().map(|t| numbers(t).stats()).collect();
-    let durations: Vec<_> = tests.iter().map(|t| numbers(t)).collect();
 
     let stats_str: Vec<_> = Stats::display_stats(&stats);
 
@@ -214,13 +215,12 @@ fn print_stats<N: Number>(
 
     let distr_plots = make_distr_plots(&tests, stats_width - 8, numbers)?;
 
-    writeln!(log.both_log_and_stderr(), "")?;
-    writeln!(log.both_log_and_stderr(), "{}:", name)?;
+    writeln!(r, "{}:", name)?;
     for index in 0..tests.len() {
         let test = &tests[index];
         let stats = &stats_str[index];
         writeln!(
-            log.both_log_and_stderr(),
+            r,
             "{color}{name}{reset}: {stats}",
             name = test.name,
             color = test.name.color(),
@@ -230,13 +230,15 @@ fn print_stats<N: Number>(
     for index in 0..tests.len() {
         let test = &tests[index];
         let plot = &distr_plots[index];
-        writeln!(
-            log.stderr_only(),
-            "{color}{name}{reset}: distr=[{plot}]",
-            name = test.name,
-            color = test.name.color(),
-            reset = ansi::RESET,
-        )?;
+        if include_distr {
+            writeln!(
+                r,
+                "{color}{name}{reset}: distr=[{plot}]",
+                name = test.name,
+                color = test.name.color(),
+                reset = ansi::RESET,
+            )?;
+        }
     }
 
     if tests.len() >= 2 {
@@ -261,7 +263,7 @@ fn print_stats<N: Number>(
                 (stats[b_index].mean.as_f64() + conf_q) / (stats[0].mean.as_f64() - conf_q);
 
             writeln!(
-                log.both_log_and_stderr(),
+                r,
                 "{b_name}/{a_name}: {b_a:.3} {b_a_min:.3}..{b_a_max:.3} (95% conf)",
                 b_name = tests[b_index].name,
                 a_name = tests[0].name,
@@ -272,7 +274,32 @@ fn print_stats<N: Number>(
         }
     }
 
+    Ok(r)
+}
+
+fn print_stats<N: Number>(
+    tests: &[Test],
+    log: &mut RunLog,
+    name: &str,
+    numbers: impl Fn(&Test) -> &Numbers<N>,
+) -> anyhow::Result<()> {
+    writeln!(log.both_log_and_stderr(), "")?;
+
+    write!(
+        log.stderr_only(),
+        "{}",
+        render_stats(tests, true, name, &numbers)?
+    )?;
+    write!(
+        log.log_only(),
+        "{}",
+        render_stats(tests, false, name, &numbers)?
+    )?;
+
+    let durations: Vec<_> = tests.iter().map(|t| numbers(t)).collect();
+
     log.write_raw(&durations)?;
+
     Ok(())
 }
 
