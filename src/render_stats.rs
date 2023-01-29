@@ -2,11 +2,11 @@ use std::fmt::Write;
 
 use crate::ansi;
 use crate::measure::MeasureDyn;
+use crate::number::Number;
+use crate::numbers::Numbers;
 use crate::student::t_table;
 use crate::student::TWO_SIDED_95;
 use crate::test::Test;
-use crate::Number;
-use crate::Numbers;
 
 pub(crate) fn render_stats<N: Number>(
     tests: &[Test],

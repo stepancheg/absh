@@ -1,9 +1,9 @@
 use crate::ansi;
+use crate::bars::PlotHighlight;
+use crate::duration::Duration;
+use crate::mem_usage::MemUsage;
+use crate::numbers::Numbers;
 use crate::test_name::TestName;
-use crate::Duration;
-use crate::MemUsage;
-use crate::Numbers;
-use crate::PlotHighlight;
 
 pub struct Test {
     pub name: TestName,

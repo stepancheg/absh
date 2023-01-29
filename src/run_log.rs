@@ -12,9 +12,9 @@ use crate::ansi::strip_csi;
 use crate::console_writer::ConsoleWriter;
 use crate::fs_util::write_using_temp;
 use crate::maybe_strip_csi_writer::MaybeStripCsiWriter;
+use crate::number::Number;
 use crate::numbers::Numbers;
 use crate::shell::shell_quote_args;
-use crate::Number;
 
 pub struct RunLog {
     name: PathBuf,

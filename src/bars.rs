@@ -70,14 +70,14 @@ fn bar_char_0_2_0_2_range(values: [f64; 2], min: f64, max: f64) -> char {
     }
 }
 
-pub fn plot(values: &[f64], min: f64, max: f64) -> String {
+fn _plot(values: &[f64], min: f64, max: f64) -> String {
     values
         .iter()
         .map(|v| bar_char_0_8_range(*v, min, max))
         .collect()
 }
 
-pub fn plot_halves(values: &[f64], min: f64, max: f64) -> String {
+fn _plot_halves(values: &[f64], min: f64, max: f64) -> String {
     let mut s = String::new();
     for chunk in values.chunks(2) {
         if chunk.len() == 2 {
@@ -184,12 +184,12 @@ pub fn plot_halves_u64(values: &[u64], max: u64, highlight: &PlotHighlight) -> S
 
 #[cfg(test)]
 mod test {
+    use crate::bars::_plot;
     use crate::bars::f64_to_bucket;
-    use crate::bars::plot_halves;
-    use crate::plot;
-    use crate::plot_halves_u64;
-    use crate::plot_u64;
-    use crate::PlotHighlight;
+    use crate::bars::plot_halves_u64;
+    use crate::bars::plot_u64;
+    use crate::bars::PlotHighlight;
+    use crate::bars::_plot_halves;
 
     #[test]
     fn test_f64_to_range() {
@@ -209,7 +209,7 @@ mod test {
     fn test_plot() {
         assert_eq!(
             "   ▁▁▂▃▄▅▆▇███",
-            plot(
+            _plot(
                 &[
                     0.0, 0.1, 0.9, 1.1, 1.9, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1, 8.9, 9.0
                 ],
@@ -236,7 +236,7 @@ mod test {
     fn test_plot_halves() {
         assert_eq!(
             " ▟█",
-            plot_halves(&[3.0, 3.9, 4.1, 5.1, 5.1, 6.0], 3.0, 6.0)
+            _plot_halves(&[3.0, 3.9, 4.1, 5.1, 5.1, 6.0], 3.0, 6.0)
         );
     }
 

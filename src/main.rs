@@ -3,16 +3,16 @@ use std::fmt::Write as _;
 use std::time::Instant;
 
 use absh::ansi;
+use absh::duration::Duration;
 use absh::measure::MaxRss;
 use absh::measure::MeasureDyn;
 use absh::measure::WallTime;
+use absh::mem_usage::MemUsage;
+use absh::numbers::Numbers;
+use absh::run_log::RunLog;
 use absh::sh::spawn_sh;
 use absh::test::Test;
 use absh::test_name::TestName;
-use absh::Duration;
-use absh::MemUsage;
-use absh::Numbers;
-use absh::RunLog;
 use clap::Parser;
 use rand::prelude::SliceRandom;
 use wait4::Wait4;
@@ -53,7 +53,7 @@ struct Opts {
     mem: bool,
 }
 
-fn run_test(log: &mut absh::RunLog, test: &mut Test) -> anyhow::Result<()> {
+fn run_test(log: &mut RunLog, test: &mut Test) -> anyhow::Result<()> {
     writeln!(log.both_log_and_stderr())?;
     writeln!(
         log.both_log_and_stderr(),
@@ -115,7 +115,7 @@ fn run_test(log: &mut absh::RunLog, test: &mut Test) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) -> anyhow::Result<()> {
+fn run_pair(log: &mut RunLog, opts: &Opts, tests: &mut [Test]) -> anyhow::Result<()> {
     let mut indices: Vec<usize> = (0..tests.len()).collect();
     if opts.random_order {
         indices.shuffle(&mut rand::thread_rng());

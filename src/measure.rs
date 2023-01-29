@@ -1,13 +1,13 @@
 use crate::distr_plot::make_distr_plots;
+use crate::duration::Duration;
+use crate::mem_usage::MemUsage;
+use crate::number::Number;
+use crate::numbers::Numbers;
 use crate::render_stats::render_stats;
 use crate::stats::Stats;
 use crate::test::Test;
-use crate::Duration;
-use crate::MemUsage;
-use crate::Number;
-use crate::Numbers;
 
-pub trait Measure {
+pub(crate) trait Measure {
     type Number: Number;
     fn name(&self) -> &str;
     fn numbers(test: &Test) -> &Numbers<Self::Number>;

@@ -1,10 +1,10 @@
-use crate::plot_halves_u64;
-use crate::plot_u64;
+use crate::bars::plot_halves_u64;
+use crate::bars::plot_u64;
+use crate::number::Number;
+use crate::numbers::Numbers;
 use crate::test::Test;
-use crate::Number;
-use crate::Numbers;
 
-pub fn make_distr_plots<N: Number>(
+pub(crate) fn make_distr_plots<N: Number>(
     tests: &[Test],
     width: usize,
     numbers: impl Fn(&Test) -> &Numbers<N>,
