@@ -4,6 +4,7 @@ use std::time::Instant;
 
 use absh::ansi;
 use absh::duration::Duration;
+use absh::measure::AllMeasures;
 use absh::measure::MaxRss;
 use absh::measure::MeasureDyn;
 use absh::measure::WallTime;
@@ -216,37 +217,29 @@ fn main() -> anyhow::Result<()> {
         )?;
     }
 
+    let mut measures: Vec<Box<dyn MeasureDyn>> = Vec::new();
+    measures.push(Box::new(WallTime));
+    if opts.mem {
+        measures.push(Box::new(MaxRss));
+    }
+    let measures = AllMeasures(measures);
+
     loop {
         run_pair(&mut log, &opts, &mut tests)?;
 
-        let min_duration_len = tests.iter_mut().map(|t| t.durations.len()).min().unwrap();
-        if Some(min_duration_len) == opts.iterations.map(|n| n as usize) {
+        let min_count = tests.iter().map(|t| t.runs()).min().unwrap();
+        if Some(min_count) == opts.iterations.map(|n| n as usize) {
             break;
         }
 
-        if min_duration_len < 2 {
+        if min_count < 2 {
             continue;
         }
 
         writeln!(log.both_log_and_stderr(), "")?;
 
-        let mut measures: Vec<&dyn MeasureDyn> = Vec::new();
-        measures.push(&WallTime);
-        if opts.mem {
-            measures.push(&MaxRss);
-        }
-
-        let mut graph_full = String::new();
-        let mut graph_short = String::new();
-
-        for (i, measure) in measures.iter().enumerate() {
-            if i != 0 {
-                graph_full.push_str("\n");
-                graph_short.push_str("\n");
-            }
-            graph_full.push_str(&measure.render_stats(&tests, true)?);
-            graph_short.push_str(&measure.render_stats(&tests, false)?);
-        }
+        let graph_full = measures.render_stats(&tests, true)?;
+        let graph_short = measures.render_stats(&tests, false)?;
 
         write!(log.stderr_only(), "{}", graph_full)?;
         write!(log.log_only(), "{}", graph_short,)?;

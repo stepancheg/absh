@@ -66,3 +66,18 @@ impl<M: Measure> MeasureDyn for M {
         render_stats(tests, include_distr, self, Self::numbers)
     }
 }
+
+pub struct AllMeasures(pub Vec<Box<dyn MeasureDyn>>);
+
+impl AllMeasures {
+    pub fn render_stats(&self, tests: &[Test], include_distr: bool) -> anyhow::Result<String> {
+        let mut s = String::new();
+        for (i, measure) in self.0.iter().enumerate() {
+            if i != 0 {
+                s.push_str("\n");
+            }
+            s.push_str(&measure.render_stats(tests, include_distr)?);
+        }
+        Ok(s)
+    }
+}

@@ -29,4 +29,8 @@ impl Test {
             reset: ansi::RESET.to_owned(),
         }
     }
+
+    pub fn runs(&self) -> usize {
+        self.durations.len()
+    }
 }
