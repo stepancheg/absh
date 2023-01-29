@@ -230,14 +230,22 @@ fn main() -> anyhow::Result<()> {
 
         writeln!(log.both_log_and_stderr(), "")?;
 
-        let mut graph_full = WallTime.render_stats(&tests, true)?;
-        let mut graph_short = WallTime.render_stats(&tests, false)?;
-
+        let mut measures: Vec<&dyn MeasureDyn> = Vec::new();
+        measures.push(&WallTime);
         if opts.mem {
-            graph_full.push_str("\n");
-            graph_short.push_str("\n");
-            graph_full.push_str(&MaxRss.render_stats(&tests, true)?);
-            graph_short.push_str(&MaxRss.render_stats(&tests, false)?);
+            measures.push(&MaxRss);
+        }
+
+        let mut graph_full = String::new();
+        let mut graph_short = String::new();
+
+        for (i, measure) in measures.iter().enumerate() {
+            if i != 0 {
+                graph_full.push_str("\n");
+                graph_short.push_str("\n");
+            }
+            graph_full.push_str(&measure.render_stats(&tests, true)?);
+            graph_short.push_str(&measure.render_stats(&tests, false)?);
         }
 
         write!(log.stderr_only(), "{}", graph_full)?;
