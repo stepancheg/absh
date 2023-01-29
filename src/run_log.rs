@@ -108,18 +108,29 @@ impl RunLog {
             join(&mut content, d);
         }
 
-        write_using_temp(self.name.join("raw"), content)?;
+        write_using_temp(self.name.join("raw.txt"), content)?;
         Ok(())
     }
 
     pub fn write_graph(&mut self, graph: &str) -> anyhow::Result<()> {
-        write_using_temp(self.name.join("graph"), graph)?;
-        write_using_temp(self.name.join("graph-bw"), strip_csi(graph))?;
+        write_using_temp(self.name.join("graph.txt"), graph)?;
+        write_using_temp(self.name.join("graph-bw.txt"), strip_csi(graph))?;
+
+        let report_md = format!(
+            "```\n{}\n```\n```{}```\n",
+            Self::args_str(),
+            strip_csi(graph),
+        );
+        write_using_temp(self.name.join("report.md"), report_md)?;
         Ok(())
     }
 
+    fn args_str() -> String {
+        shell_quote_args(env::args())
+    }
+
     pub fn write_args(&mut self) -> anyhow::Result<()> {
-        let mut args = shell_quote_args(env::args());
+        let mut args = Self::args_str();
         args.push_str("\n");
         write_using_temp(self.name.join("args"), args)?;
         Ok(())
