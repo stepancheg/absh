@@ -246,8 +246,7 @@ fn main() -> anyhow::Result<()> {
 
         log.write_graph(&graph_full)?;
 
-        let durations: Vec<_> = tests.iter().map(|t| &t.durations).collect();
-        log.write_raw(&durations)?;
+        measures.write_raw(&tests, &mut log)?;
     }
 
     Ok(())

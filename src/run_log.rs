@@ -92,7 +92,11 @@ impl RunLog {
         &mut self.console_writer
     }
 
-    pub fn write_raw<N: Number>(&mut self, durations: &[&Numbers<N>]) -> anyhow::Result<()> {
+    pub fn write_raw<N: Number>(
+        &mut self,
+        id: &str,
+        durations: &[&Numbers<N>],
+    ) -> anyhow::Result<()> {
         let mut content = String::new();
         fn join<N: Number>(r: &mut String, ds: &Numbers<N>) -> anyhow::Result<()> {
             for (i, d) in ds.iter().enumerate() {
@@ -109,7 +113,7 @@ impl RunLog {
             join(&mut content, d)?;
         }
 
-        write_using_temp(self.name.join("raw.txt"), content)?;
+        write_using_temp(self.name.join(format!("raw-{}.txt", id)), content)?;
         Ok(())
     }
 
