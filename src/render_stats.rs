@@ -16,7 +16,7 @@ pub(crate) fn render_stats<N: Number>(
 ) -> anyhow::Result<String> {
     let mut r = String::new();
 
-    let stats: Vec<_> = tests.iter().map(|t| numbers(t).stats()).collect();
+    let stats: Vec<_> = tests.iter().map(|t| numbers(t).stats().unwrap()).collect();
 
     let stats_str: Vec<_> = measure.display_stats(tests);
 

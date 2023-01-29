@@ -69,7 +69,10 @@ impl<M: Measure> MeasureDyn for M {
     }
 
     fn display_stats(&self, tests: &[Test]) -> Vec<String> {
-        let stats: Vec<_> = tests.iter().map(|t| Self::numbers(t).stats()).collect();
+        let stats: Vec<_> = tests
+            .iter()
+            .map(|t| Self::numbers(t).stats().unwrap())
+            .collect();
         Stats::display_stats(&stats)
     }
 

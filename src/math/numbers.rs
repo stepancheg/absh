@@ -1,4 +1,5 @@
 use crate::math::number::Number;
+use crate::math::sorted::NumbersSorted;
 use crate::math::stats::stats;
 use crate::math::stats::Stats;
 
@@ -42,39 +43,35 @@ impl<T: Number> Numbers<T> {
         self.raw.len()
     }
 
-    pub fn med(&self) -> T {
-        if self.len() % 2 == 0 {
-            let xy: T =
-                self.sorted[self.len() / 2 - 1].clone() + self.sorted[self.len() / 2].clone();
-            xy.div_usize(2)
-        } else {
-            self.sorted[self.len() / 2].clone()
-        }
+    pub fn med(&self) -> Option<T> {
+        self.sorted().med()
     }
 
-    pub fn min(&self) -> T {
-        self.sorted[0].clone()
+    pub fn min(&self) -> Option<T> {
+        self.sorted().min()
     }
 
-    pub fn max(&self) -> T {
-        self.sorted.last().unwrap().clone()
+    pub fn max(&self) -> Option<T> {
+        self.sorted().max()
     }
 
     pub fn sum(&self) -> T {
         self.raw.iter().cloned().sum()
     }
 
-    pub fn mean(&self) -> T {
+    pub fn mean(&self) -> Option<T> {
         if self.len() == 0 {
-            T::default()
+            None
         } else {
-            self.sum().div_usize(self.len())
+            Some(self.sum().div_usize(self.len()))
         }
     }
 
-    pub fn std(&self) -> T {
-        assert!(self.len() >= 2);
-        let mean = self.mean();
+    pub fn std(&self) -> Option<T> {
+        if self.len() < 2 {
+            return None;
+        }
+        let mean = self.mean()?;
         let s_2 = self
             .raw
             .iter()
@@ -83,11 +80,15 @@ impl<T: Number> Numbers<T> {
             / ((self.len() - 1) as f64);
         let std_seconds = f64::sqrt(s_2);
 
-        T::from_f64(std_seconds)
+        Some(T::from_f64(std_seconds))
     }
 
     pub fn iter<'a>(&'a self) -> impl Iterator<Item = T> + 'a {
         self.raw.iter().cloned()
+    }
+
+    pub fn sorted(&self) -> NumbersSorted<T> {
+        NumbersSorted(&self.sorted)
     }
 
     pub fn distr(&self, n: usize, min: T, max: T) -> Distr {
@@ -104,7 +105,7 @@ impl<T: Number> Numbers<T> {
         Distr { counts }
     }
 
-    pub fn stats(&self) -> Stats<T> {
+    pub fn stats(&self) -> Option<Stats<T>> {
         stats(self)
     }
 }
@@ -181,12 +182,12 @@ mod test {
         ds.push(TestNumber(50));
         ds.push(TestNumber(20));
         ds.push(TestNumber(30));
-        assert_eq!(TestNumber(20), ds.min());
-        assert_eq!(TestNumber(50), ds.max());
+        assert_eq!(TestNumber(20), ds.min().unwrap());
+        assert_eq!(TestNumber(50), ds.max().unwrap());
         ds.push(TestNumber(60));
-        assert_eq!(TestNumber(60), ds.max());
+        assert_eq!(TestNumber(60), ds.max().unwrap());
         ds.push(TestNumber(10));
-        assert_eq!(TestNumber(10), ds.min());
+        assert_eq!(TestNumber(10), ds.min().unwrap());
     }
 
     #[test]
@@ -226,11 +227,11 @@ mod test {
     fn mean() {
         let mut ds = Numbers::default();
 
-        assert_eq!(TestNumber::default(), ds.mean());
+        assert_eq!(None, ds.mean());
 
         ds.push(TestNumber(10));
         ds.push(TestNumber(30));
-        assert_eq!(TestNumber(20), ds.mean());
+        assert_eq!(TestNumber(20), ds.mean().unwrap());
     }
 
     #[test]
@@ -240,6 +241,6 @@ mod test {
         ds.push(TestNumber(13));
         ds.push(TestNumber(15));
 
-        assert_eq!(TestNumber(2), ds.std())
+        assert_eq!(TestNumber(2), ds.std().unwrap())
     }
 }

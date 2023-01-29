@@ -9,8 +9,16 @@ pub(crate) fn make_distr_plots<N: Number>(
     width: usize,
     numbers: impl Fn(&Test) -> &Numbers<N>,
 ) -> anyhow::Result<Vec<String>> {
-    let min = tests.iter().map(|t| numbers(t).min()).min().unwrap();
-    let max = tests.iter().map(|t| numbers(t).max()).max().unwrap();
+    let min = tests
+        .iter()
+        .map(|t| numbers(t).min().unwrap())
+        .min()
+        .unwrap();
+    let max = tests
+        .iter()
+        .map(|t| numbers(t).max().unwrap())
+        .max()
+        .unwrap();
 
     let distr_halves: Vec<_> = tests
         .iter()

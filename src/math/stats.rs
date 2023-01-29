@@ -90,23 +90,23 @@ impl<T: Number> fmt::Display for Stats<T> {
     }
 }
 
-pub(crate) fn stats<T: Number>(numbers: &Numbers<T>) -> Stats<T> {
+pub(crate) fn stats<T: Number>(numbers: &Numbers<T>) -> Option<Stats<T>> {
     assert!(numbers.len() >= 2);
 
-    Stats {
+    Some(Stats {
         count: numbers.len() as u64,
-        mean: numbers.mean(),
-        med: numbers.med(),
-        min: numbers.min(),
-        max: numbers.max(),
-        std: numbers.std(),
-    }
+        mean: numbers.mean()?,
+        med: numbers.med()?,
+        min: numbers.min()?,
+        max: numbers.max()?,
+        std: numbers.std()?,
+    })
 }
 
 #[cfg(test)]
 mod test {
     use crate::math::numbers::Numbers;
-    use crate::stats::stats;
+    use crate::math::stats::stats;
 
     #[test]
     fn se() {
@@ -116,7 +116,7 @@ mod test {
         numbers.push(30u64);
         numbers.push(30u64);
         numbers.push(30u64);
-        let stats = stats(&numbers);
+        let stats = stats(&numbers).unwrap();
         assert_eq!(4, stats.se());
     }
 }
