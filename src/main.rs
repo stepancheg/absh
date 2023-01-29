@@ -371,11 +371,11 @@ fn main() {
         eprintln!("Log symlink is {}", last.display());
     }
 
-    writeln!(&mut log, "random_order: {}", opts.random_order).unwrap();
+    writeln!(log.log_only(), "random_order: {}", opts.random_order).unwrap();
     for t in &mut tests {
-        writeln!(&mut log, "{}.run: {}", t.name, t.run).unwrap();
+        writeln!(log.log_only(), "{}.run: {}", t.name, t.run).unwrap();
         if !t.warmup.is_empty() {
-            writeln!(&mut log, "{}.warmup: {}", t.name, t.warmup).unwrap();
+            writeln!(log.log_only(), "{}.warmup: {}", t.name, t.warmup).unwrap();
         }
     }
 

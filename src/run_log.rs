@@ -81,6 +81,10 @@ impl RunLog {
         BothLogAndStderr { log: self }
     }
 
+    pub fn log_only(&mut self) -> &mut File {
+        &mut self.file
+    }
+
     pub fn write_raw<N: Number>(&mut self, durations: &[&Numbers<N>]) -> io::Result<()> {
         let mut content = String::new();
         fn join<N: Number>(r: &mut String, ds: &Numbers<N>) {
@@ -101,21 +105,12 @@ impl RunLog {
     }
 }
 
-impl io::Write for RunLog {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.file.write(buf)
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        self.file.flush()
-    }
-}
-
 impl fmt::Write for BothLogAndStderr<'_> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         let black_and_white = strip_csi(s);
         eprint!("{}", s);
         self.log
+            .log_only()
             .write(black_and_white.as_bytes())
             .map_err(|_| fmt::Error)?;
         Ok(())
