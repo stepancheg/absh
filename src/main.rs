@@ -272,20 +272,16 @@ fn print_stats<N: Number>(
             "{color}{name}{reset}: {stats}",
             name = test.name,
             color = test_color(test),
-            reset = reset,
-            stats = stats,
         )
         .unwrap();
     }
     for index in 0..tests.len() {
         let test = &tests[index];
-        let distr_plot = &distr_plots[index];
+        let plot = &distr_plots[index];
         eprintln!(
             "{color}{name}{reset}: distr=[{plot}]",
             name = test.name,
             color = test_color(test),
-            reset = reset,
-            plot = distr_plot,
         );
     }
 
