@@ -19,6 +19,7 @@ mod number;
 mod numbers;
 mod run_log;
 pub mod sh;
+pub mod shell;
 mod stats;
 pub mod student;
 pub mod test_name;

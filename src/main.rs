@@ -317,6 +317,8 @@ fn main() -> anyhow::Result<()> {
         eprintln!("Log symlink is {}", last.display());
     }
 
+    log.write_args()?;
+
     writeln!(log.log_only(), "random_order: {}", opts.random_order)?;
     for t in &mut tests {
         writeln!(log.log_only(), "{}.run: {}", t.name, t.run)?;

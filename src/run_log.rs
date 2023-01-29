@@ -1,3 +1,4 @@
+use std::env;
 use std::fmt;
 use std::fmt::Write as _;
 use std::fs;
@@ -11,6 +12,7 @@ use std::time::SystemTime;
 use crate::ansi::strip_csi;
 use crate::console_writer::ConsoleWriter;
 use crate::numbers::Numbers;
+use crate::shell::shell_quote_args;
 use crate::Number;
 use std::io::Write;
 
@@ -109,6 +111,13 @@ impl RunLog {
         }
 
         fs::write(&self.raw, content)
+    }
+
+    pub fn write_args(&mut self) -> anyhow::Result<()> {
+        let mut args = shell_quote_args(env::args());
+        args.push_str("\n");
+        fs::write(self.name.join("args"), args)?;
+        Ok(())
     }
 }
 
