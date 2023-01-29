@@ -117,7 +117,7 @@ impl RunLog {
         write_using_temp(self.name.join("graph-bw.txt"), strip_csi(graph))?;
 
         let report_md = format!(
-            "```\n{}\n```\n```{}```\n",
+            "```\n{}\n```\n```\n{}```\n",
             Self::args_str(),
             strip_csi(graph),
         );
