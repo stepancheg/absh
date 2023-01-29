@@ -132,7 +132,7 @@ impl RunLog {
     pub fn write_args(&mut self) -> anyhow::Result<()> {
         let mut args = Self::args_str();
         args.push_str("\n");
-        write_using_temp(self.name.join("args"), args)?;
+        write_using_temp(self.name.join("args.txt"), args)?;
         Ok(())
     }
 }
