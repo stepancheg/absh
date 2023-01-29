@@ -319,11 +319,11 @@ fn main() -> anyhow::Result<()> {
         eprintln!("Log symlink is {}", last.display());
     }
 
-    writeln!(log.log_only(), "random_order: {}", opts.random_order).unwrap();
+    writeln!(log.log_only(), "random_order: {}", opts.random_order)?;
     for t in &mut tests {
-        writeln!(log.log_only(), "{}.run: {}", t.name, t.run).unwrap();
+        writeln!(log.log_only(), "{}.run: {}", t.name, t.run)?;
         if !t.warmup.is_empty() {
-            writeln!(log.log_only(), "{}.warmup: {}", t.name, t.warmup).unwrap();
+            writeln!(log.log_only(), "{}.warmup: {}", t.name, t.warmup)?;
         }
     }
 
@@ -335,41 +335,36 @@ fn main() -> anyhow::Result<()> {
             test.mem_usages.clear();
         }
 
-        writeln!(log.both_log_and_stderr(), "").unwrap();
+        writeln!(log.both_log_and_stderr(), "")?;
         writeln!(
             log.both_log_and_stderr(),
             "Ignoring first run pair results."
-        )
-        .unwrap();
-        writeln!(log.both_log_and_stderr(), "Now collecting the results.").unwrap();
+        )?;
+        writeln!(log.both_log_and_stderr(), "Now collecting the results.")?;
         writeln!(
             log.both_log_and_stderr(),
             "Statistics will be printed after the second successful iteration."
-        )
-        .unwrap();
+        )?;
     } else {
-        writeln!(log.both_log_and_stderr(), "").unwrap();
+        writeln!(log.both_log_and_stderr(), "")?;
         writeln!(
             log.both_log_and_stderr(),
             "{yellow}First run pair results will be used in statistics.{reset}",
             yellow = ansi::YELLOW,
             reset = ansi::RESET,
-        )
-        .unwrap();
+        )?;
         writeln!(
             log.both_log_and_stderr(),
             "{yellow}Results might be skewed.{reset}",
             yellow = ansi::YELLOW,
             reset = ansi::RESET,
-        )
-        .unwrap();
+        )?;
         writeln!(
             log.both_log_and_stderr(),
             "{yellow}Use `-i` command line flag to ignore the first iteration.{reset}",
             yellow = ansi::YELLOW,
             reset = ansi::RESET,
-        )
-        .unwrap();
+        )?;
     }
 
     loop {
