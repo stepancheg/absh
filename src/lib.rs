@@ -12,6 +12,7 @@ pub use stats::Stats;
 
 pub mod ansi;
 mod bars;
+pub mod console_writer;
 mod duration;
 mod mem_usage;
 mod number;

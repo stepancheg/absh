@@ -9,6 +9,7 @@ use std::path::PathBuf;
 use std::time::SystemTime;
 
 use crate::ansi::strip_csi;
+use crate::console_writer::ConsoleWriter;
 use crate::numbers::Numbers;
 use crate::Number;
 use std::io::Write;
@@ -18,6 +19,7 @@ pub struct RunLog {
     raw: PathBuf,
     last: Option<PathBuf>,
     file: File,
+    console_writer: ConsoleWriter,
 }
 
 pub struct BothLogAndStderr<'a> {
@@ -70,6 +72,7 @@ impl RunLog {
         let last = { None };
 
         RunLog {
+            console_writer: ConsoleWriter::auto(),
             name,
             file,
             last,
@@ -83,6 +86,10 @@ impl RunLog {
 
     pub fn log_only(&mut self) -> &mut File {
         &mut self.file
+    }
+
+    pub fn stderr_only(&mut self) -> &mut ConsoleWriter {
+        &mut self.console_writer
     }
 
     pub fn write_raw<N: Number>(&mut self, durations: &[&Numbers<N>]) -> io::Result<()> {
@@ -107,8 +114,8 @@ impl RunLog {
 
 impl fmt::Write for BothLogAndStderr<'_> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
+        self.log.console_writer.write_str(s)?;
         let black_and_white = strip_csi(s);
-        eprint!("{}", s);
         self.log
             .log_only()
             .write(black_and_white.as_bytes())

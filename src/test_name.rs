@@ -30,6 +30,10 @@ impl TestName {
             TestName::E => ansi::CYAN,
         }
     }
+
+    pub fn name_colored(&self) -> String {
+        format!("{}{}{}", self.color(), self.name(), ansi::RESET)
+    }
 }
 
 impl fmt::Display for TestName {

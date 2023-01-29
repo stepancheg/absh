@@ -6,7 +6,6 @@ use std::time::Instant;
 use structopt::StructOpt;
 
 use absh::ansi;
-use absh::ansi::RESET;
 use absh::plot_halves_u64;
 use absh::plot_u64;
 use absh::sh::spawn_sh;
@@ -32,40 +31,19 @@ struct Test {
 }
 
 impl Test {
-    fn color(&self, is_tty: bool) -> &'static str {
-        match is_tty {
-            true => self.name.color(),
-            false => "",
+    fn plot_highlights(&self) -> PlotHighlight {
+        PlotHighlight {
+            non_zero: format!("{}", self.name.color().to_owned()),
+            zero: format!("{}", ansi::WHITE_BG),
+            reset: ansi::RESET.to_owned(),
         }
     }
 
-    fn name_colored_if_tty(&self, is_tty: bool) -> String {
-        if is_tty {
-            format!("{}{}{}", self.name.color(), self.name, RESET)
-        } else {
-            self.name.to_string()
-        }
-    }
-
-    fn plot_highlights(&self, is_tty: bool) -> PlotHighlight {
-        match is_tty {
-            true => PlotHighlight {
-                non_zero: format!("{}", self.name.color().to_owned()),
-                zero: format!("{}", ansi::WHITE_BG),
-                reset: RESET.to_owned(),
-            },
-            false => PlotHighlight::no(),
-        }
-    }
-
-    fn plot_halves_highlights(&self, is_tty: bool) -> PlotHighlight {
-        match is_tty {
-            true => PlotHighlight {
-                non_zero: format!("{}", self.name.color().to_owned()),
-                zero: "".to_owned(),
-                reset: RESET.to_owned(),
-            },
-            false => PlotHighlight::no(),
+    fn plot_halves_highlights(&self) -> PlotHighlight {
+        PlotHighlight {
+            non_zero: format!("{}", self.name.color().to_owned()),
+            zero: "".to_owned(),
+            reset: ansi::RESET.to_owned(),
         }
     }
 }
@@ -114,12 +92,12 @@ struct Opts {
     mem: bool,
 }
 
-fn run_test(log: &mut absh::RunLog, is_tty: bool, test: &mut Test) {
+fn run_test(log: &mut absh::RunLog, test: &mut Test) {
     writeln!(log.both_log_and_stderr()).unwrap();
     writeln!(
         log.both_log_and_stderr(),
         "running test: {}",
-        test.name_colored_if_tty(is_tty)
+        test.name.name_colored()
     )
     .unwrap();
     let warmup_lines = test.warmup.lines().collect::<Vec<_>>();
@@ -169,7 +147,7 @@ fn run_test(log: &mut absh::RunLog, is_tty: bool, test: &mut Test) {
     writeln!(
         log.both_log_and_stderr(),
         "{} finished in {:3} s, max rss {} MiB",
-        test.name_colored_if_tty(is_tty),
+        test.name.name_colored(),
         duration,
         max_rss.mib(),
     )
@@ -179,20 +157,19 @@ fn run_test(log: &mut absh::RunLog, is_tty: bool, test: &mut Test) {
     test.mem_usages.push(max_rss);
 }
 
-fn run_pair(log: &mut absh::RunLog, opts: &Opts, is_tty: bool, tests: &mut [Test]) {
+fn run_pair(log: &mut absh::RunLog, opts: &Opts, tests: &mut [Test]) {
     let mut indices: Vec<usize> = (0..tests.len()).collect();
     if opts.random_order {
         indices.shuffle(&mut rand::thread_rng());
     }
     for &index in &indices {
-        run_test(log, is_tty, &mut tests[index]);
+        run_test(log, &mut tests[index]);
     }
 }
 
 fn make_distr_plots<N: Number>(
     tests: &[Test],
     width: usize,
-    is_tty: bool,
     numbers: impl Fn(&Test) -> &Numbers<N>,
 ) -> Vec<String> {
     let min = tests.iter().map(|t| numbers(t).min()).min().unwrap();
@@ -218,18 +195,12 @@ fn make_distr_plots<N: Number>(
 
     let distr_plots = distr
         .iter()
-        .map(|(t, d)| plot_u64(&d.counts, max_height, &t.plot_highlights(is_tty)))
+        .map(|(t, d)| plot_u64(&d.counts, max_height, &t.plot_highlights()))
         .collect();
 
     let distr_halves_plots = distr_halves
         .iter()
-        .map(|(t, d)| {
-            plot_halves_u64(
-                &d.counts,
-                max_height_halves,
-                &t.plot_halves_highlights(is_tty),
-            )
-        })
+        .map(|(t, d)| plot_halves_u64(&d.counts, max_height_halves, &t.plot_halves_highlights()))
         .collect();
 
     if max_height_halves <= 2 {
@@ -241,17 +212,11 @@ fn make_distr_plots<N: Number>(
 
 fn print_stats<N: Number>(
     tests: &[Test],
-    is_tty: bool,
     log: &mut RunLog,
     name: &str,
     numbers: impl Fn(&Test) -> &Numbers<N>,
 ) {
-    let reset = match is_tty {
-        true => RESET,
-        false => "",
-    };
-
-    let test_color = |t: &Test| t.color(is_tty);
+    let test_color = |t: &Test| t.name.color();
 
     let stats: Vec<_> = tests.iter().map(|t| numbers(t).stats()).collect();
     let durations: Vec<_> = tests.iter().map(|t| numbers(t)).collect();
@@ -260,7 +225,7 @@ fn print_stats<N: Number>(
 
     let stats_width = stats_str.iter().map(|s| s.len()).max().unwrap();
 
-    let distr_plots = make_distr_plots(&tests, stats_width - 8, is_tty, numbers);
+    let distr_plots = make_distr_plots(&tests, stats_width - 8, numbers);
 
     writeln!(log.both_log_and_stderr(), "").unwrap();
     writeln!(log.both_log_and_stderr(), "{}:", name).unwrap();
@@ -272,17 +237,21 @@ fn print_stats<N: Number>(
             "{color}{name}{reset}: {stats}",
             name = test.name,
             color = test_color(test),
+            reset = ansi::RESET,
         )
         .unwrap();
     }
     for index in 0..tests.len() {
         let test = &tests[index];
         let plot = &distr_plots[index];
-        eprintln!(
+        writeln!(
+            log.stderr_only(),
             "{color}{name}{reset}: distr=[{plot}]",
             name = test.name,
             color = test_color(test),
-        );
+            reset = ansi::RESET,
+        )
+        .unwrap();
     }
 
     if tests.len() >= 2 {
@@ -357,12 +326,6 @@ fn main() {
     parse_opt_test(&mut tests, TestName::D, &opts.d, &opts.dw);
     parse_opt_test(&mut tests, TestName::E, &opts.e, &opts.ew);
 
-    let is_tty = !cfg!(windows) && atty::is(atty::Stream::Stderr);
-    let (yellow, reset) = match is_tty {
-        true => (ansi::YELLOW, ansi::RESET),
-        false => ("", ""),
-    };
-
     eprintln!("Writing absh data to {}/", log.name().display());
     if let Some(last) = log.last() {
         eprintln!("Log symlink is {}", last.display());
@@ -377,7 +340,7 @@ fn main() {
     }
 
     if opts.ignore_first {
-        run_pair(&mut log, &opts, is_tty, &mut tests);
+        run_pair(&mut log, &opts, &mut tests);
 
         for test in &mut tests {
             test.durations.clear();
@@ -401,28 +364,28 @@ fn main() {
         writeln!(
             log.both_log_and_stderr(),
             "{yellow}First run pair results will be used in statistics.{reset}",
-            yellow = yellow,
-            reset = reset
+            yellow = ansi::YELLOW,
+            reset = ansi::RESET,
         )
         .unwrap();
         writeln!(
             log.both_log_and_stderr(),
             "{yellow}Results might be skewed.{reset}",
-            yellow = yellow,
-            reset = reset
+            yellow = ansi::YELLOW,
+            reset = ansi::RESET,
         )
         .unwrap();
         writeln!(
             log.both_log_and_stderr(),
             "{yellow}Use `-i` command line flag to ignore the first iteration.{reset}",
-            yellow = yellow,
-            reset = reset
+            yellow = ansi::YELLOW,
+            reset = ansi::RESET,
         )
         .unwrap();
     }
 
     loop {
-        run_pair(&mut log, &opts, is_tty, &mut tests);
+        run_pair(&mut log, &opts, &mut tests);
 
         let min_duration_len = tests.iter_mut().map(|t| t.durations.len()).min().unwrap();
         if Some(min_duration_len) == opts.iterations.map(|n| n as usize) {
@@ -433,11 +396,9 @@ fn main() {
             continue;
         }
 
-        print_stats(&tests, is_tty, &mut log, "Time (in seconds)", |t| {
-            &t.durations
-        });
+        print_stats(&tests, &mut log, "Time (in seconds)", |t| &t.durations);
         if opts.mem {
-            print_stats(&tests, is_tty, &mut log, "Max RSS (in megabytes)", |t| {
+            print_stats(&tests, &mut log, "Max RSS (in megabytes)", |t| {
                 &t.mem_usages
             });
         }
