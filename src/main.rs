@@ -205,8 +205,6 @@ fn print_stats<N: Number>(
     name: &str,
     numbers: impl Fn(&Test) -> &Numbers<N>,
 ) -> anyhow::Result<()> {
-    let test_color = |t: &Test| t.name.color();
-
     let stats: Vec<_> = tests.iter().map(|t| numbers(t).stats()).collect();
     let durations: Vec<_> = tests.iter().map(|t| numbers(t)).collect();
 
@@ -225,7 +223,7 @@ fn print_stats<N: Number>(
             log.both_log_and_stderr(),
             "{color}{name}{reset}: {stats}",
             name = test.name,
-            color = test_color(test),
+            color = test.name.color(),
             reset = ansi::RESET,
         )
         .unwrap();
@@ -237,7 +235,7 @@ fn print_stats<N: Number>(
             log.stderr_only(),
             "{color}{name}{reset}: distr=[{plot}]",
             name = test.name,
-            color = test_color(test),
+            color = test.name.color(),
             reset = ansi::RESET,
         )?;
     }
