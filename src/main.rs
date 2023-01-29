@@ -68,7 +68,7 @@ fn run_test(log: &mut RunLog, test: &mut Test) -> anyhow::Result<()> {
         }
     }
 
-    let mut process = spawn_sh(&test.warmup);
+    let mut process = spawn_sh(&test.warmup)?;
     let status = process.wait4()?;
     if !status.status.success() {
         writeln!(
@@ -87,7 +87,7 @@ fn run_test(log: &mut RunLog, test: &mut Test) -> anyhow::Result<()> {
 
     let start = Instant::now();
 
-    let mut process = spawn_sh(&test.run);
+    let mut process = spawn_sh(&test.run)?;
     let status = process.wait4()?;
     if !status.status.success() {
         writeln!(
