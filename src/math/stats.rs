@@ -1,8 +1,8 @@
 use std::fmt;
 use std::slice;
 
-use crate::number::Number;
-use crate::numbers::Numbers;
+use crate::math::number::Number;
+use crate::math::numbers::Numbers;
 
 pub struct Stats<T: Number> {
     pub count: u64,
@@ -105,7 +105,7 @@ pub(crate) fn stats<T: Number>(numbers: &Numbers<T>) -> Stats<T> {
 
 #[cfg(test)]
 mod test {
-    use crate::numbers::Numbers;
+    use crate::math::numbers::Numbers;
     use crate::stats::stats;
 
     #[test]

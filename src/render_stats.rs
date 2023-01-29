@@ -1,9 +1,9 @@
 use std::fmt::Write;
 
 use crate::ansi;
+use crate::math::number::Number;
+use crate::math::numbers::Numbers;
 use crate::measure::MeasureDyn;
-use crate::number::Number;
-use crate::numbers::Numbers;
 use crate::student::t_table;
 use crate::student::TWO_SIDED_95;
 use crate::test::Test;

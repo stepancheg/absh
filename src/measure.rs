@@ -1,11 +1,11 @@
 use crate::distr_plot::make_distr_plots;
 use crate::duration::Duration;
+use crate::math::number::Number;
+use crate::math::numbers::Numbers;
+use crate::math::stats::Stats;
 use crate::mem_usage::MemUsage;
-use crate::number::Number;
-use crate::numbers::Numbers;
 use crate::render_stats::render_stats;
 use crate::run_log::RunLog;
-use crate::stats::Stats;
 use crate::test::Test;
 
 pub(crate) trait Measure {

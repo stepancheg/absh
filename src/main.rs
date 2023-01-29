@@ -4,12 +4,12 @@ use std::time::Instant;
 
 use absh::ansi;
 use absh::duration::Duration;
+use absh::math::numbers::Numbers;
 use absh::measure::AllMeasures;
 use absh::measure::MaxRss;
 use absh::measure::MeasureDyn;
 use absh::measure::WallTime;
 use absh::mem_usage::MemUsage;
-use absh::numbers::Numbers;
 use absh::run_log::RunLog;
 use absh::sh::spawn_sh;
 use absh::test::Test;

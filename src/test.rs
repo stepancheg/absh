@@ -1,8 +1,8 @@
 use crate::ansi;
 use crate::bars::PlotHighlight;
 use crate::duration::Duration;
+use crate::math::numbers::Numbers;
 use crate::mem_usage::MemUsage;
-use crate::numbers::Numbers;
 use crate::test_name::TestName;
 
 pub struct Test {

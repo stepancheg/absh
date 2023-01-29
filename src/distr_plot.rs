@@ -1,7 +1,7 @@
 use crate::bars::plot_halves_u64;
 use crate::bars::plot_u64;
-use crate::number::Number;
-use crate::numbers::Numbers;
+use crate::math::number::Number;
+use crate::math::numbers::Numbers;
 use crate::test::Test;
 
 pub(crate) fn make_distr_plots<N: Number>(

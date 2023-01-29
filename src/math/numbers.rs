@@ -1,6 +1,6 @@
-use crate::number::Number;
-use crate::stats::stats;
-use crate::stats::Stats;
+use crate::math::number::Number;
+use crate::math::stats::stats;
+use crate::math::stats::Stats;
 
 pub struct Distr {
     pub counts: Vec<u64>,
@@ -117,8 +117,8 @@ mod test {
     use std::ops::Div;
     use std::ops::Sub;
 
-    use crate::numbers::Number;
-    use crate::numbers::Numbers;
+    use crate::math::numbers::Number;
+    use crate::math::numbers::Numbers;
 
     #[derive(Copy, Clone, Default, PartialOrd, Eq, PartialEq, Ord, Debug)]
     struct TestNumber(u64);

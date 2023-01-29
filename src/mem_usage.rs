@@ -3,7 +3,7 @@ use std::iter::Sum;
 use std::ops::Add;
 use std::ops::Sub;
 
-use crate::number::Number;
+use crate::math::number::Number;
 
 #[derive(Copy, Clone, Default, PartialOrd, Ord, PartialEq, Eq)]
 pub struct MemUsage {

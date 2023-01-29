@@ -5,7 +5,7 @@ use std::ops::AddAssign;
 use std::ops::Div;
 use std::ops::Sub;
 
-use crate::number::Number;
+use crate::math::number::Number;
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Default, Debug)]
 pub struct Duration {
