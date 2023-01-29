@@ -225,8 +225,7 @@ fn print_stats<N: Number>(
             name = test.name,
             color = test.name.color(),
             reset = ansi::RESET,
-        )
-        .unwrap();
+        )?;
     }
     for index in 0..tests.len() {
         let test = &tests[index];
