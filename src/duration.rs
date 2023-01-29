@@ -19,6 +19,12 @@ impl Number for Duration {
         }
     }
 
+    fn mul_usize(&self, rhs: usize) -> Self {
+        Duration {
+            nanos: self.nanos.checked_mul(rhs as u64).unwrap(),
+        }
+    }
+
     fn as_f64(&self) -> f64 {
         self.seconds_f64()
     }

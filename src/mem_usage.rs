@@ -65,6 +65,12 @@ impl Number for MemUsage {
         }
     }
 
+    fn mul_usize(&self, rhs: usize) -> Self {
+        MemUsage {
+            bytes: self.bytes.checked_mul(rhs as u64).unwrap(),
+        }
+    }
+
     fn as_f64(&self) -> f64 {
         self.bytes as f64
     }

@@ -56,31 +56,15 @@ impl<T: Number> Numbers<T> {
     }
 
     pub fn sum(&self) -> T {
-        self.raw.iter().cloned().sum()
+        self.sorted().sum()
     }
 
     pub fn mean(&self) -> Option<T> {
-        if self.len() == 0 {
-            None
-        } else {
-            Some(self.sum().div_usize(self.len()))
-        }
+        self.sorted().mean()
     }
 
     pub fn std(&self) -> Option<T> {
-        if self.len() < 2 {
-            return None;
-        }
-        let mean = self.mean()?;
-        let s_2 = self
-            .raw
-            .iter()
-            .map(|d| (d.as_f64() - mean.as_f64()) * (d.as_f64() - mean.as_f64()))
-            .sum::<f64>()
-            / ((self.len() - 1) as f64);
-        let std_seconds = f64::sqrt(s_2);
-
-        Some(T::from_f64(std_seconds))
+        self.sorted().std()
     }
 
     pub fn iter<'a>(&'a self) -> impl Iterator<Item = T> + 'a {
@@ -164,6 +148,10 @@ mod test {
     impl Number for TestNumber {
         fn div_usize(&self, rhs: usize) -> Self {
             TestNumber(self.0 / (rhs as u64))
+        }
+
+        fn mul_usize(&self, rhs: usize) -> Self {
+            TestNumber(self.0.checked_mul(rhs as u64).unwrap())
         }
 
         fn as_f64(&self) -> f64 {
