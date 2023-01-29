@@ -8,7 +8,7 @@ edition = "2018"
 doctest = false
 
 [dependencies]
-structopt = "=0.3"
+clap = { version = "4.1.4", features = ["derive", "color"] }
 atty = "=0.2"
 rand = "0.7.3"
 dirs = "3.0.1"

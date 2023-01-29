@@ -1,9 +1,8 @@
+use clap::Parser;
 use std::convert::TryInto;
 use std::fmt::Write as _;
 use std::io::Write;
 use std::time::Instant;
-
-use structopt::StructOpt;
 
 use absh::ansi;
 use absh::plot_halves_u64;
@@ -48,47 +47,39 @@ impl Test {
     }
 }
 
-#[derive(StructOpt, Debug)]
+#[derive(clap::Parser, Debug)]
+#[command(about = "A/B testing for shell scripts")]
 struct Opts {
-    #[structopt(short = "a", help = "A variant shell script")]
+    #[clap(short, help = "A variant shell script")]
     a: String,
-    #[structopt(short = "b", help = "B variant shell script")]
+    #[clap(short, help = "B variant shell script")]
     b: Option<String>,
-    #[structopt(short = "c", help = "C variant shell script")]
+    #[clap(short, help = "C variant shell script")]
     c: Option<String>,
-    #[structopt(short = "d", help = "D variant shell script")]
+    #[clap(short, help = "D variant shell script")]
     d: Option<String>,
-    #[structopt(short = "e", help = "E variant shell script")]
+    #[clap(short, help = "E variant shell script")]
     e: Option<String>,
-    #[structopt(short = "A", long = "a-warmup", help = "A variant warmup shell script")]
+    #[clap(short = 'A', long = "a-warmup", help = "A variant warmup shell script")]
     aw: Option<String>,
-    #[structopt(short = "B", long = "b-warmup", help = "B variant warmup shell script")]
+    #[clap(short = 'B', long = "b-warmup", help = "B variant warmup shell script")]
     bw: Option<String>,
-    #[structopt(short = "C", long = "c-warmup", help = "C variant warmup shell script")]
+    #[clap(short = 'C', long = "c-warmup", help = "C variant warmup shell script")]
     cw: Option<String>,
-    #[structopt(short = "D", long = "d-warmup", help = "D variant warmup shell script")]
+    #[clap(short = 'D', long = "d-warmup", help = "D variant warmup shell script")]
     dw: Option<String>,
-    #[structopt(short = "E", long = "e-warmup", help = "E variant warmup shell script")]
+    #[clap(short = 'E', long = "e-warmup", help = "E variant warmup shell script")]
     ew: Option<String>,
-    #[structopt(
-        short = "r",
-        long = "random-order",
-        help = "Randomise test execution order"
-    )]
+    #[clap(short = 'r', help = "Randomise test execution order")]
     random_order: bool,
-    #[structopt(
-        short = "i",
-        long = "ignore-first",
-        help = "Ignore the results of the first iteration"
-    )]
+    #[clap(short = 'i', help = "Ignore the results of the first iteration")]
     ignore_first: bool,
-    #[structopt(
-        short = "n",
-        long = "iterations",
+    #[clap(
+        short = 'n',
         help = "Stop after n successful iterations (run forever if not specified)"
     )]
     iterations: Option<u32>,
-    #[structopt(short = "m", long = "mem", help = "Also measure max resident set size")]
+    #[clap(short = 'm', long, help = "Also measure max resident set size")]
     mem: bool,
 }
 
@@ -292,7 +283,7 @@ fn print_stats<N: Number>(
 }
 
 fn main() {
-    let opts: Opts = Opts::from_args();
+    let opts: Opts = Opts::parse();
 
     let mut log = RunLog::open();
 
