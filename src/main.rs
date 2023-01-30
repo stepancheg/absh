@@ -101,7 +101,9 @@ fn run_test(log: &mut RunLog, test: &mut Experiment) -> anyhow::Result<()> {
     }
 
     let duration = Duration::from_nanos(start.elapsed().as_nanos().try_into()?);
-    assert!(status.rusage.maxrss != 0, "maxrss not available");
+    if status.rusage.maxrss == 0 {
+        return Err(anyhow::anyhow!("maxrss not available"));
+    }
     let max_rss = MemUsage::from_bytes(status.rusage.maxrss);
 
     writeln!(
