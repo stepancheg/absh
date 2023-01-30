@@ -99,11 +99,11 @@ impl<A: Display + Copy> Stats<A> {
     }
 }
 
-pub(crate) fn stats<T: Number>(numbers: &Numbers<T>) -> Option<Stats<T>> {
+pub(crate) fn stats(numbers: &Numbers) -> Option<Stats<u64>> {
     assert!(numbers.len() >= 2);
 
     let std = numbers.std()?;
-    let se = T::from_f64(std.as_f64() / f64::sqrt((numbers.len() - 1) as f64));
+    let se = (std.as_f64() / f64::sqrt((numbers.len() - 1) as f64)) as u64;
     Some(Stats {
         count: numbers.len() as u64,
         mean: numbers.mean()?,

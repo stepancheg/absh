@@ -11,7 +11,6 @@ use std::time::SystemTime;
 use crate::ansi::strip_csi;
 use crate::console_writer::ConsoleWriter;
 use crate::fs_util::write_using_temp;
-use crate::math::number::Number;
 use crate::math::numbers::Numbers;
 use crate::maybe_strip_csi_writer::MaybeStripCsiWriter;
 use crate::shell::shell_quote_args;
@@ -92,13 +91,9 @@ impl RunLog {
         &mut self.console_writer
     }
 
-    pub fn write_raw<N: Number>(
-        &mut self,
-        id: &str,
-        durations: &[&Numbers<N>],
-    ) -> anyhow::Result<()> {
+    pub fn write_raw(&mut self, id: &str, durations: &[&Numbers]) -> anyhow::Result<()> {
         let mut content = String::new();
-        fn join<N: Number>(r: &mut String, ds: &Numbers<N>) -> anyhow::Result<()> {
+        fn join(r: &mut String, ds: &Numbers) -> anyhow::Result<()> {
             for (i, d) in ds.iter().enumerate() {
                 if i != 0 {
                     write!(r, " ")?;

@@ -9,11 +9,11 @@ use crate::measure::tr::MeasureDyn;
 use crate::student::t_table;
 use crate::student::TWO_SIDED_95;
 
-pub(crate) fn render_stats<N: Number>(
+pub(crate) fn render_stats(
     tests: &ExperimentMap<Experiment>,
     include_distr: bool,
     measure: &dyn MeasureDyn,
-    numbers: impl Fn(&Experiment) -> &Numbers<N>,
+    numbers: impl Fn(&Experiment) -> &Numbers,
 ) -> anyhow::Result<String> {
     let mut r = String::new();
 

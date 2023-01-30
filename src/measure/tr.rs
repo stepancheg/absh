@@ -4,7 +4,6 @@ use crate::distr_plot::make_distr_plots;
 use crate::duration::Duration;
 use crate::experiment::Experiment;
 use crate::experiment_map::ExperimentMap;
-use crate::math::number::Number;
 use crate::math::numbers::Numbers;
 use crate::math::stats::Stats;
 use crate::mem_usage::MemUsage;
@@ -12,24 +11,22 @@ use crate::render_stats::render_stats;
 use crate::run_log::RunLog;
 
 pub(crate) trait Measure {
-    type Number: Number;
     type NumberDisplay: Display + Copy;
 
-    fn number_to_display(&self, number: Self::Number) -> Self::NumberDisplay;
+    fn number_to_display(&self, number: u64) -> Self::NumberDisplay;
 
     fn name(&self) -> &str;
     fn id(&self) -> &str;
-    fn numbers(test: &Experiment) -> &Numbers<Self::Number>;
+    fn numbers(test: &Experiment) -> &Numbers;
 }
 
 pub struct WallTime;
 
 impl Measure for WallTime {
     /// Nanoseconds.
-    type Number = u64;
     type NumberDisplay = Duration;
 
-    fn number_to_display(&self, number: Self::Number) -> Self::NumberDisplay {
+    fn number_to_display(&self, number: u64) -> Self::NumberDisplay {
         Duration::from_nanos(number)
     }
 
@@ -41,7 +38,7 @@ impl Measure for WallTime {
         "wall-time"
     }
 
-    fn numbers(test: &Experiment) -> &Numbers<Self::Number> {
+    fn numbers(test: &Experiment) -> &Numbers {
         &test.duration_nanos
     }
 }
@@ -50,10 +47,9 @@ pub struct MaxRss;
 
 impl Measure for MaxRss {
     /// Bytes.
-    type Number = u64;
     type NumberDisplay = u64;
 
-    fn number_to_display(&self, number: Self::Number) -> Self::NumberDisplay {
+    fn number_to_display(&self, number: u64) -> Self::NumberDisplay {
         MemUsage::from_bytes(number).mib()
     }
 
@@ -65,7 +61,7 @@ impl Measure for MaxRss {
         "max-rss"
     }
 
-    fn numbers(test: &Experiment) -> &Numbers<Self::Number> {
+    fn numbers(test: &Experiment) -> &Numbers {
         &test.mem_usage_bytes
     }
 }

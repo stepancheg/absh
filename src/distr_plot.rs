@@ -2,13 +2,12 @@ use crate::bars::plot_halves_u64;
 use crate::bars::plot_u64;
 use crate::experiment::Experiment;
 use crate::experiment_map::ExperimentMap;
-use crate::math::number::Number;
 use crate::math::numbers::Numbers;
 
-pub(crate) fn make_distr_plots<N: Number>(
+pub(crate) fn make_distr_plots(
     tests: &ExperimentMap<Experiment>,
     width: usize,
-    numbers: impl Fn(&Experiment) -> &Numbers<N>,
+    numbers: impl Fn(&Experiment) -> &Numbers,
 ) -> anyhow::Result<ExperimentMap<String>> {
     let min = tests
         .values()

@@ -7,8 +7,8 @@ pub struct Experiment {
     pub name: ExperimentName,
     pub warmup: String,
     pub run: String,
-    pub duration_nanos: Numbers<u64>,
-    pub mem_usage_bytes: Numbers<u64>,
+    pub duration_nanos: Numbers,
+    pub mem_usage_bytes: Numbers,
 }
 
 impl Experiment {
