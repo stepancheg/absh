@@ -3,7 +3,6 @@ use std::fmt::Write;
 use crate::ansi;
 use crate::experiment::Experiment;
 use crate::experiment_map::ExperimentMap;
-use crate::math::number::Number;
 use crate::math::numbers::Numbers;
 use crate::measure::tr::MeasureDyn;
 use crate::student::t_table;
@@ -63,13 +62,13 @@ pub(crate) fn render_stats(
         // Quarter of a confidence interval
         let conf_q = conf_h / 2.0;
 
-        let b_a_min = (stats_b.mean.as_f64() - conf_q) / (stats_a.mean.as_f64() + conf_q);
-        let b_a_max = (stats_b.mean.as_f64() + conf_q) / (stats_a.mean.as_f64() - conf_q);
+        let b_a_min = (stats_b.mean as f64 - conf_q) / (stats_a.mean as f64 + conf_q);
+        let b_a_max = (stats_b.mean as f64 + conf_q) / (stats_a.mean as f64 - conf_q);
 
         writeln!(
             r,
             "{b_name}/{a_name}: {b_a:.3} {b_a_min:.3}..{b_a_max:.3} (95% conf)",
-            b_a = stats_b.mean.as_f64() / stats_a.mean.as_f64(),
+            b_a = stats_b.mean as f64 / stats_a.mean as f64,
             b_a_min = b_a_min,
             b_a_max = b_a_max,
         )?;

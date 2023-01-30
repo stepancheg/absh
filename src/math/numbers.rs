@@ -1,4 +1,3 @@
-use crate::math::number::Number;
 use crate::math::sorted::NumbersSorted;
 use crate::math::stats::stats;
 use crate::math::stats::Stats;
@@ -79,8 +78,8 @@ impl Numbers {
         let mut counts = vec![0; n];
         if min != max {
             for d in &self.raw {
-                let bucket = (((d.clone() - min.clone()).as_f64())
-                    / ((max.clone() - min.clone()).as_f64())
+                let bucket = (((d.clone() - min.clone()) as f64)
+                    / ((max.clone() - min.clone()) as f64)
                     * ((n - 1) as f64))
                     .round() as usize;
                 counts[bucket.clamp(0, n - 1)] += 1;
@@ -102,7 +101,6 @@ mod test {
     use std::ops::Div;
     use std::ops::Sub;
 
-    use crate::math::numbers::Number;
     use crate::math::numbers::Numbers;
 
     #[derive(Copy, Clone, Default, PartialOrd, Eq, PartialEq, Ord, Debug)]
@@ -142,24 +140,6 @@ mod test {
     impl Sum for TestNumber {
         fn sum<I: Iterator<Item = Self>>(iter: I) -> TestNumber {
             TestNumber(iter.map(|n| n.0).sum())
-        }
-    }
-
-    impl Number for TestNumber {
-        fn div_usize(&self, rhs: usize) -> Self {
-            TestNumber(self.0 / (rhs as u64))
-        }
-
-        fn mul_usize(&self, rhs: usize) -> Self {
-            TestNumber(self.0.checked_mul(rhs as u64).unwrap())
-        }
-
-        fn as_f64(&self) -> f64 {
-            (self.0 as f64) * 1000.0
-        }
-
-        fn from_f64(f: f64) -> Self {
-            TestNumber((f / 1000.0) as u64)
         }
     }
 

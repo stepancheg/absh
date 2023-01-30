@@ -2,7 +2,6 @@ use std::fmt;
 use std::fmt::Display;
 
 use crate::experiment_map::ExperimentMap;
-use crate::math::number::Number;
 use crate::math::numbers::Numbers;
 
 pub struct Stats<A> {
@@ -29,10 +28,10 @@ impl<A> Stats<A> {
     }
 }
 
-impl<T: Number> Stats<T> {
+impl Stats<u64> {
     /// sigma^2
     pub fn sigma_sq(&self) -> f64 {
-        let millis = self.std.as_f64();
+        let millis = self.std as f64;
         millis * millis
     }
 }
@@ -103,7 +102,7 @@ pub(crate) fn stats(numbers: &Numbers) -> Option<Stats<u64>> {
     assert!(numbers.len() >= 2);
 
     let std = numbers.std()?;
-    let se = (std.as_f64() / f64::sqrt((numbers.len() - 1) as f64)) as u64;
+    let se = (std as f64 / f64::sqrt((numbers.len() - 1) as f64)) as u64;
     Some(Stats {
         count: numbers.len() as u64,
         mean: numbers.mean()?,

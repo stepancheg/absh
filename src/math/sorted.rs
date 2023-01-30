@@ -1,5 +1,3 @@
-use crate::math::number::Number;
-
 #[derive(Eq, PartialEq, Debug, Clone, Copy)]
 pub struct NumbersSorted<'a>(pub &'a [u64]);
 
@@ -33,7 +31,7 @@ impl<'a> NumbersSorted<'a> {
         } else {
             if self.len() % 2 == 0 {
                 let xy: u64 = self.0[self.len() / 2 - 1].clone() + self.0[self.len() / 2].clone();
-                Some(xy.div_usize(2))
+                Some(xy / 2)
             } else {
                 Some(self.0[self.len() / 2].clone())
             }
@@ -48,7 +46,7 @@ impl<'a> NumbersSorted<'a> {
         if self.len() == 0 {
             None
         } else {
-            Some(self.sum().div_usize(self.len()))
+            Some(self.sum() / self.len() as u64)
         }
     }
 
@@ -60,7 +58,7 @@ impl<'a> NumbersSorted<'a> {
         let s_2 = self
             .0
             .iter()
-            .map(|d| (d.as_f64() - mean.as_f64()) * (d.as_f64() - mean.as_f64()))
+            .map(|d| (*d as f64 - mean as f64) * (*d as f64 - mean as f64))
             .sum::<f64>()
             / ((self.len() - 1) as f64);
         let std_seconds = f64::sqrt(s_2);
@@ -92,8 +90,8 @@ impl<'a> NumbersSorted<'a> {
     fn filter_3_sigma_inner(&self) -> Option<NumbersSorted<'a>> {
         let std = self.std()?;
         let mean = self.mean()?;
-        let min = mean - std.mul_usize(3);
-        let max = mean + std.mul_usize(3);
+        let min = mean - std * 3;
+        let max = mean + std * 3;
         let nums = self.filter(FilterCond::Ge, min);
         let nums = nums.filter(FilterCond::Le, max);
         Some(nums)
