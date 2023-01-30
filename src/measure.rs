@@ -1,4 +1,4 @@
-use std::fmt;
+use std::fmt::Display;
 
 use crate::distr_plot::make_distr_plots;
 use crate::duration::Duration;
@@ -13,33 +13,24 @@ use crate::run_log::RunLog;
 
 pub(crate) trait Measure {
     type Number: Number;
+    type NumberDisplay: Display + Copy;
+
+    fn number_to_display(&self, number: Self::Number) -> Self::NumberDisplay;
+
     fn name(&self) -> &str;
     fn id(&self) -> &str;
     fn numbers(test: &Experiment) -> &Numbers<Self::Number>;
-    fn format_number_for_stats(&self, number: Self::Number, f: &mut fmt::Formatter) -> fmt::Result;
-    fn number_display_for_stats(&self, number: Self::Number) -> MeasureNumberDisplay<Self>
-    where
-        Self: Sized,
-    {
-        MeasureNumberDisplay(self, number)
-    }
-}
-
-pub(crate) struct MeasureNumberDisplay<'m, M: Measure>(&'m M, M::Number);
-
-impl<'m, M> fmt::Display for MeasureNumberDisplay<'m, M>
-where
-    M: Measure,
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.format_number_for_stats(self.1, f)
-    }
 }
 
 pub struct WallTime;
 
 impl Measure for WallTime {
     type Number = Duration;
+    type NumberDisplay = Duration;
+
+    fn number_to_display(&self, number: Self::Number) -> Self::NumberDisplay {
+        number
+    }
 
     fn name(&self) -> &str {
         "Time (in seconds)"
@@ -52,17 +43,17 @@ impl Measure for WallTime {
     fn numbers(test: &Experiment) -> &Numbers<Self::Number> {
         &test.durations
     }
-
-    fn format_number_for_stats(&self, number: Self::Number, f: &mut fmt::Formatter) -> fmt::Result {
-        // TODO: ignores formatter flags
-        write!(f, "{:.3}", &number)
-    }
 }
 
 pub struct MaxRss;
 
 impl Measure for MaxRss {
     type Number = MemUsage;
+    type NumberDisplay = u64;
+
+    fn number_to_display(&self, number: Self::Number) -> Self::NumberDisplay {
+        number.mib()
+    }
 
     fn name(&self) -> &str {
         "Max RSS (in megabytes)"
@@ -74,10 +65,6 @@ impl Measure for MaxRss {
 
     fn numbers(test: &Experiment) -> &Numbers<Self::Number> {
         &test.mem_usages
-    }
-
-    fn format_number_for_stats(&self, number: Self::Number, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Display::fmt(&number.mib(), f)
     }
 }
 
@@ -111,8 +98,13 @@ impl<M: Measure> MeasureDyn for M {
     }
 
     fn display_stats(&self, tests: &ExperimentMap<Experiment>) -> ExperimentMap<String> {
-        let stats: ExperimentMap<_> = tests.map(|t| Self::numbers(t).stats().unwrap());
-        Stats::display_stats(&stats, self)
+        let stats: ExperimentMap<_> = tests.map(|t| {
+            Self::numbers(t)
+                .stats()
+                .unwrap()
+                .map(|n| self.number_to_display(n))
+        });
+        Stats::display_stats_new(&stats)
     }
 
     fn render_stats(
