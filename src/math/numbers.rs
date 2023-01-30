@@ -95,53 +95,8 @@ impl Numbers {
 
 #[cfg(test)]
 mod test {
-    use std::fmt;
-    use std::iter::Sum;
-    use std::ops::Add;
-    use std::ops::Div;
-    use std::ops::Sub;
 
     use crate::math::numbers::Numbers;
-
-    #[derive(Copy, Clone, Default, PartialOrd, Eq, PartialEq, Ord, Debug)]
-    struct TestNumber(u64);
-
-    impl fmt::Display for TestNumber {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            fmt::Display::fmt(&self.0, f)
-        }
-    }
-
-    impl Add for TestNumber {
-        type Output = TestNumber;
-
-        fn add(self, rhs: TestNumber) -> Self::Output {
-            TestNumber(self.0 + rhs.0)
-        }
-    }
-
-    impl Sub for TestNumber {
-        type Output = Self;
-
-        fn sub(self, rhs: Self) -> Self::Output {
-            assert!(self.0 >= rhs.0);
-            TestNumber(self.0 - rhs.0)
-        }
-    }
-
-    impl Div<usize> for TestNumber {
-        type Output = TestNumber;
-
-        fn div(self, rhs: usize) -> Self::Output {
-            TestNumber(self.0 / rhs as u64)
-        }
-    }
-
-    impl Sum for TestNumber {
-        fn sum<I: Iterator<Item = Self>>(iter: I) -> TestNumber {
-            TestNumber(iter.map(|n| n.0).sum())
-        }
-    }
 
     #[test]
     fn push() {
