@@ -4,6 +4,8 @@ use std::time::Instant;
 
 use absh::ansi;
 use absh::duration::Duration;
+use absh::experiment::Experiment;
+use absh::experiment_name::ExperimentName;
 use absh::math::numbers::Numbers;
 use absh::measure::AllMeasures;
 use absh::measure::MaxRss;
@@ -12,8 +14,6 @@ use absh::measure::WallTime;
 use absh::mem_usage::MemUsage;
 use absh::run_log::RunLog;
 use absh::sh::spawn_sh;
-use absh::test::Test;
-use absh::test_name::TestName;
 use clap::Parser;
 use rand::prelude::SliceRandom;
 use wait4::Wait4;
@@ -54,7 +54,7 @@ struct Opts {
     mem: bool,
 }
 
-fn run_test(log: &mut RunLog, test: &mut Test) -> anyhow::Result<()> {
+fn run_test(log: &mut RunLog, test: &mut Experiment) -> anyhow::Result<()> {
     writeln!(log.both_log_and_stderr())?;
     writeln!(
         log.both_log_and_stderr(),
@@ -116,7 +116,7 @@ fn run_test(log: &mut RunLog, test: &mut Test) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn run_pair(log: &mut RunLog, opts: &Opts, tests: &mut [Test]) -> anyhow::Result<()> {
+fn run_pair(log: &mut RunLog, opts: &Opts, tests: &mut [Experiment]) -> anyhow::Result<()> {
     let mut indices: Vec<usize> = (0..tests.len()).collect();
     if opts.random_order {
         indices.shuffle(&mut rand::thread_rng());
@@ -133,8 +133,8 @@ fn main() -> anyhow::Result<()> {
     let mut log = RunLog::open();
 
     let mut tests = Vec::new();
-    tests.push(Test {
-        name: TestName::A,
+    tests.push(Experiment {
+        name: ExperimentName::A,
         warmup: opts.aw.clone().unwrap_or(String::new()),
         run: opts.a.clone(),
         durations: Numbers::default(),
@@ -142,13 +142,13 @@ fn main() -> anyhow::Result<()> {
     });
 
     fn parse_opt_test(
-        tests: &mut Vec<Test>,
-        name: TestName,
+        tests: &mut Vec<Experiment>,
+        name: ExperimentName,
         run: &Option<String>,
         warmup: &Option<String>,
     ) {
         if let Some(run) = run.clone() {
-            tests.push(Test {
+            tests.push(Experiment {
                 name,
                 warmup: warmup.clone().unwrap_or(String::new()),
                 run,
@@ -157,10 +157,10 @@ fn main() -> anyhow::Result<()> {
             });
         }
     }
-    parse_opt_test(&mut tests, TestName::B, &opts.b, &opts.bw);
-    parse_opt_test(&mut tests, TestName::C, &opts.c, &opts.cw);
-    parse_opt_test(&mut tests, TestName::D, &opts.d, &opts.dw);
-    parse_opt_test(&mut tests, TestName::E, &opts.e, &opts.ew);
+    parse_opt_test(&mut tests, ExperimentName::B, &opts.b, &opts.bw);
+    parse_opt_test(&mut tests, ExperimentName::C, &opts.c, &opts.cw);
+    parse_opt_test(&mut tests, ExperimentName::D, &opts.d, &opts.dw);
+    parse_opt_test(&mut tests, ExperimentName::E, &opts.e, &opts.ew);
 
     eprintln!("Writing absh data to {}/", log.name().display());
     if let Some(last) = log.last() {

@@ -1,19 +1,19 @@
 use crate::ansi;
 use crate::bars::PlotHighlight;
 use crate::duration::Duration;
+use crate::experiment_name::ExperimentName;
 use crate::math::numbers::Numbers;
 use crate::mem_usage::MemUsage;
-use crate::test_name::TestName;
 
-pub struct Test {
-    pub name: TestName,
+pub struct Experiment {
+    pub name: ExperimentName,
     pub warmup: String,
     pub run: String,
     pub durations: Numbers<Duration>,
     pub mem_usages: Numbers<MemUsage>,
 }
 
-impl Test {
+impl Experiment {
     pub fn plot_highlights(&self) -> PlotHighlight {
         PlotHighlight {
             non_zero: format!("{}", self.name.color().to_owned()),

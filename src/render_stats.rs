@@ -1,18 +1,18 @@
 use std::fmt::Write;
 
 use crate::ansi;
+use crate::experiment::Experiment;
 use crate::math::number::Number;
 use crate::math::numbers::Numbers;
 use crate::measure::MeasureDyn;
 use crate::student::t_table;
 use crate::student::TWO_SIDED_95;
-use crate::test::Test;
 
 pub(crate) fn render_stats<N: Number>(
-    tests: &[Test],
+    tests: &[Experiment],
     include_distr: bool,
     measure: &dyn MeasureDyn,
-    numbers: impl Fn(&Test) -> &Numbers<N>,
+    numbers: impl Fn(&Experiment) -> &Numbers<N>,
 ) -> anyhow::Result<String> {
     let mut r = String::new();
 

@@ -1,13 +1,13 @@
 use crate::bars::plot_halves_u64;
 use crate::bars::plot_u64;
+use crate::experiment::Experiment;
 use crate::math::number::Number;
 use crate::math::numbers::Numbers;
-use crate::test::Test;
 
 pub(crate) fn make_distr_plots<N: Number>(
-    tests: &[Test],
+    tests: &[Experiment],
     width: usize,
-    numbers: impl Fn(&Test) -> &Numbers<N>,
+    numbers: impl Fn(&Experiment) -> &Numbers<N>,
 ) -> anyhow::Result<Vec<String>> {
     let min = tests
         .iter()
