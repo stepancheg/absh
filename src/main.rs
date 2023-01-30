@@ -5,6 +5,7 @@ use std::time::Instant;
 use absh::ansi;
 use absh::duration::Duration;
 use absh::experiment::Experiment;
+use absh::experiment_map::ExperimentMap;
 use absh::experiment_name::ExperimentName;
 use absh::math::numbers::Numbers;
 use absh::measure::AllMeasures;
@@ -116,13 +117,17 @@ fn run_test(log: &mut RunLog, test: &mut Experiment) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn run_pair(log: &mut RunLog, opts: &Opts, tests: &mut [Experiment]) -> anyhow::Result<()> {
-    let mut indices: Vec<usize> = (0..tests.len()).collect();
+fn run_pair(
+    log: &mut RunLog,
+    opts: &Opts,
+    tests: &mut ExperimentMap<Experiment>,
+) -> anyhow::Result<()> {
+    let mut indices: Vec<ExperimentName> = tests.keys().collect();
     if opts.random_order {
         indices.shuffle(&mut rand::thread_rng());
     }
     for &index in &indices {
-        run_test(log, &mut tests[index])?;
+        run_test(log, tests.get_mut(index).unwrap())?;
     }
     Ok(())
 }
@@ -132,35 +137,41 @@ fn main() -> anyhow::Result<()> {
 
     let mut log = RunLog::open();
 
-    let mut tests = Vec::new();
-    tests.push(Experiment {
-        name: ExperimentName::A,
-        warmup: opts.aw.clone().unwrap_or(String::new()),
-        run: opts.a.clone(),
-        durations: Numbers::default(),
-        mem_usages: Numbers::default(),
-    });
+    let mut experiments = ExperimentMap::default();
+    experiments.insert(
+        ExperimentName::A,
+        Experiment {
+            name: ExperimentName::A,
+            warmup: opts.aw.clone().unwrap_or(String::new()),
+            run: opts.a.clone(),
+            durations: Numbers::default(),
+            mem_usages: Numbers::default(),
+        },
+    );
 
     fn parse_opt_test(
-        tests: &mut Vec<Experiment>,
+        tests: &mut ExperimentMap<Experiment>,
         name: ExperimentName,
         run: &Option<String>,
         warmup: &Option<String>,
     ) {
         if let Some(run) = run.clone() {
-            tests.push(Experiment {
+            tests.insert(
                 name,
-                warmup: warmup.clone().unwrap_or(String::new()),
-                run,
-                durations: Numbers::default(),
-                mem_usages: Numbers::default(),
-            });
+                Experiment {
+                    name,
+                    warmup: warmup.clone().unwrap_or(String::new()),
+                    run,
+                    durations: Numbers::default(),
+                    mem_usages: Numbers::default(),
+                },
+            );
         }
     }
-    parse_opt_test(&mut tests, ExperimentName::B, &opts.b, &opts.bw);
-    parse_opt_test(&mut tests, ExperimentName::C, &opts.c, &opts.cw);
-    parse_opt_test(&mut tests, ExperimentName::D, &opts.d, &opts.dw);
-    parse_opt_test(&mut tests, ExperimentName::E, &opts.e, &opts.ew);
+    parse_opt_test(&mut experiments, ExperimentName::B, &opts.b, &opts.bw);
+    parse_opt_test(&mut experiments, ExperimentName::C, &opts.c, &opts.cw);
+    parse_opt_test(&mut experiments, ExperimentName::D, &opts.d, &opts.dw);
+    parse_opt_test(&mut experiments, ExperimentName::E, &opts.e, &opts.ew);
 
     eprintln!("Writing absh data to {}/", log.name().display());
     if let Some(last) = log.last() {
@@ -170,17 +181,17 @@ fn main() -> anyhow::Result<()> {
     log.write_args()?;
 
     writeln!(log.log_only(), "random_order: {}", opts.random_order)?;
-    for t in &mut tests {
-        writeln!(log.log_only(), "{}.run: {}", t.name, t.run)?;
+    for (n, t) in experiments.iter_mut() {
+        writeln!(log.log_only(), "{}.run: {}", n, t.run)?;
         if !t.warmup.is_empty() {
-            writeln!(log.log_only(), "{}.warmup: {}", t.name, t.warmup)?;
+            writeln!(log.log_only(), "{}.warmup: {}", n, t.warmup)?;
         }
     }
 
     if opts.ignore_first {
-        run_pair(&mut log, &opts, &mut tests)?;
+        run_pair(&mut log, &opts, &mut experiments)?;
 
-        for test in &mut tests {
+        for (_n, test) in experiments.iter_mut() {
             test.durations.clear();
             test.mem_usages.clear();
         }
@@ -225,9 +236,9 @@ fn main() -> anyhow::Result<()> {
     let measures = AllMeasures(measures);
 
     loop {
-        run_pair(&mut log, &opts, &mut tests)?;
+        run_pair(&mut log, &opts, &mut experiments)?;
 
-        let min_count = tests.iter().map(|t| t.runs()).min().unwrap();
+        let min_count = experiments.values_mut().map(|t| t.runs()).min().unwrap();
         if Some(min_count) == opts.iterations.map(|n| n as usize) {
             break;
         }
@@ -238,15 +249,15 @@ fn main() -> anyhow::Result<()> {
 
         writeln!(log.both_log_and_stderr(), "")?;
 
-        let graph_full = measures.render_stats(&tests, true)?;
-        let graph_short = measures.render_stats(&tests, false)?;
+        let graph_full = measures.render_stats(&experiments, true)?;
+        let graph_short = measures.render_stats(&experiments, false)?;
 
         write!(log.stderr_only(), "{}", graph_full)?;
         write!(log.log_only(), "{}", graph_short,)?;
 
         log.write_graph(&graph_full)?;
 
-        measures.write_raw(&tests, &mut log)?;
+        measures.write_raw(&experiments, &mut log)?;
     }
 
     Ok(())

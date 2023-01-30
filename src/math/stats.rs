@@ -1,5 +1,6 @@
 use std::fmt;
 
+use crate::experiment_map::ExperimentMap;
 use crate::math::number::Number;
 use crate::math::numbers::Numbers;
 use crate::measure::Measure;
@@ -24,14 +25,14 @@ impl<T: Number> Stats<T> {
         millis * millis
     }
 
-    pub(crate) fn display_stats<M>(stats: &[Stats<T>], m: &M) -> Vec<String>
+    pub(crate) fn display_stats<M>(stats: &ExperimentMap<Stats<T>>, m: &M) -> ExperimentMap<String>
     where
         M: Measure<Number = T>,
     {
         struct MultiWriter<'s, M: Measure> {
-            vec: Vec<String>,
+            vec: ExperimentMap<String>,
             m: &'s M,
-            stats: &'s [Stats<M::Number>],
+            stats: &'s ExperimentMap<Stats<M::Number>>,
         }
 
         impl<'s, M: Measure> MultiWriter<'s, M> {
@@ -43,20 +44,16 @@ impl<T: Number> Stats<T> {
                 's: 'd,
             {
                 use std::fmt::Write;
-                let values: Vec<String> = self
-                    .stats
-                    .iter()
-                    .map(|s| v(self.m, s).to_string())
-                    .collect();
-                let max_len = values.iter().map(|s| s.len()).max().unwrap();
-                for (r, s) in self.vec.iter_mut().zip(&values) {
+                let values: ExperimentMap<String> = self.stats.map(|s| v(self.m, s).to_string());
+                let max_len = values.values().map(|s| s.len()).max().unwrap();
+                for (r, s) in self.vec.values_mut().zip(values.values()) {
                     write!(r, "{:>width$}", s, width = max_len)?;
                 }
                 Ok(())
             }
 
             fn append_str(&mut self, s: &str) -> fmt::Result {
-                for r in &mut self.vec {
+                for r in self.vec.values_mut() {
                     r.push_str(s);
                 }
                 Ok(())
@@ -70,7 +67,7 @@ impl<T: Number> Stats<T> {
             where
                 's: 'd,
             {
-                if !self.vec[0].is_empty() {
+                if !self.vec.values().next().unwrap().is_empty() {
                     self.append_str(" ")?;
                 }
                 self.append_str(name)?;
@@ -91,7 +88,7 @@ impl<T: Number> Stats<T> {
         }
 
         let mut w = MultiWriter::<M> {
-            vec: vec![String::new(); stats.len()],
+            vec: stats.map(|_| String::new()),
             stats,
             m,
         };

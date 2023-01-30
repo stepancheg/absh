@@ -4,6 +4,7 @@ pub mod console_writer;
 pub mod distr_plot;
 pub mod duration;
 pub mod experiment;
+pub mod experiment_map;
 pub mod experiment_name;
 pub mod fs_util;
 pub mod math;

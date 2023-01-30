@@ -3,6 +3,7 @@ use std::fmt;
 use crate::distr_plot::make_distr_plots;
 use crate::duration::Duration;
 use crate::experiment::Experiment;
+use crate::experiment_map::ExperimentMap;
 use crate::math::number::Number;
 use crate::math::numbers::Numbers;
 use crate::math::stats::Stats;
@@ -82,10 +83,18 @@ impl Measure for MaxRss {
 
 pub trait MeasureDyn {
     fn name(&self) -> &str;
-    fn make_distr_plots(&self, tests: &[Experiment], width: usize) -> anyhow::Result<Vec<String>>;
-    fn display_stats(&self, tests: &[Experiment]) -> Vec<String>;
-    fn render_stats(&self, tests: &[Experiment], include_distr: bool) -> anyhow::Result<String>;
-    fn write_raw(&self, tests: &[Experiment], log: &mut RunLog) -> anyhow::Result<()>;
+    fn make_distr_plots(
+        &self,
+        tests: &ExperimentMap<Experiment>,
+        width: usize,
+    ) -> anyhow::Result<ExperimentMap<String>>;
+    fn display_stats(&self, tests: &ExperimentMap<Experiment>) -> ExperimentMap<String>;
+    fn render_stats(
+        &self,
+        tests: &ExperimentMap<Experiment>,
+        include_distr: bool,
+    ) -> anyhow::Result<String>;
+    fn write_raw(&self, tests: &ExperimentMap<Experiment>, log: &mut RunLog) -> anyhow::Result<()>;
 }
 
 impl<M: Measure> MeasureDyn for M {
@@ -93,26 +102,31 @@ impl<M: Measure> MeasureDyn for M {
         self.name()
     }
 
-    fn make_distr_plots(&self, tests: &[Experiment], width: usize) -> anyhow::Result<Vec<String>> {
+    fn make_distr_plots(
+        &self,
+        tests: &ExperimentMap<Experiment>,
+        width: usize,
+    ) -> anyhow::Result<ExperimentMap<String>> {
         make_distr_plots(tests, width, Self::numbers)
     }
 
-    fn display_stats(&self, tests: &[Experiment]) -> Vec<String> {
-        let stats: Vec<_> = tests
-            .iter()
-            .map(|t| Self::numbers(t).stats().unwrap())
-            .collect();
+    fn display_stats(&self, tests: &ExperimentMap<Experiment>) -> ExperimentMap<String> {
+        let stats: ExperimentMap<_> = tests.map(|t| Self::numbers(t).stats().unwrap());
         Stats::display_stats(&stats, self)
     }
 
-    fn render_stats(&self, tests: &[Experiment], include_distr: bool) -> anyhow::Result<String> {
+    fn render_stats(
+        &self,
+        tests: &ExperimentMap<Experiment>,
+        include_distr: bool,
+    ) -> anyhow::Result<String> {
         render_stats(tests, include_distr, self, Self::numbers)
     }
 
-    fn write_raw(&self, tests: &[Experiment], log: &mut RunLog) -> anyhow::Result<()> {
+    fn write_raw(&self, tests: &ExperimentMap<Experiment>, log: &mut RunLog) -> anyhow::Result<()> {
         log.write_raw(
             self.id(),
-            &tests.iter().map(Self::numbers).collect::<Vec<_>>(),
+            &tests.values().map(Self::numbers).collect::<Vec<_>>(),
         )
     }
 }
@@ -122,7 +136,7 @@ pub struct AllMeasures(pub Vec<Box<dyn MeasureDyn>>);
 impl AllMeasures {
     pub fn render_stats(
         &self,
-        tests: &[Experiment],
+        tests: &ExperimentMap<Experiment>,
         include_distr: bool,
     ) -> anyhow::Result<String> {
         let mut s = String::new();
@@ -135,7 +149,11 @@ impl AllMeasures {
         Ok(s)
     }
 
-    pub fn write_raw(&self, tests: &[Experiment], log: &mut RunLog) -> anyhow::Result<()> {
+    pub fn write_raw(
+        &self,
+        tests: &ExperimentMap<Experiment>,
+        log: &mut RunLog,
+    ) -> anyhow::Result<()> {
         for measure in &self.0 {
             measure.write_raw(tests, log)?;
         }
