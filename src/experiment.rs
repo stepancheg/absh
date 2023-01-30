@@ -1,6 +1,5 @@
 use crate::ansi;
 use crate::bars::PlotHighlight;
-use crate::duration::Duration;
 use crate::experiment_name::ExperimentName;
 use crate::math::numbers::Numbers;
 use crate::mem_usage::MemUsage;
@@ -9,7 +8,7 @@ pub struct Experiment {
     pub name: ExperimentName,
     pub warmup: String,
     pub run: String,
-    pub durations: Numbers<Duration>,
+    pub duration_nanos: Numbers<u64>,
     pub mem_usages: Numbers<MemUsage>,
 }
 
@@ -31,6 +30,6 @@ impl Experiment {
     }
 
     pub fn runs(&self) -> usize {
-        self.durations.len()
+        self.duration_nanos.len()
     }
 }

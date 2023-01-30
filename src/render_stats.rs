@@ -5,7 +5,7 @@ use crate::experiment::Experiment;
 use crate::experiment_map::ExperimentMap;
 use crate::math::number::Number;
 use crate::math::numbers::Numbers;
-use crate::measure::MeasureDyn;
+use crate::measure::tr::MeasureDyn;
 use crate::student::t_table;
 use crate::student::TWO_SIDED_95;
 

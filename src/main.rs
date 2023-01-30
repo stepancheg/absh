@@ -8,10 +8,10 @@ use absh::experiment::Experiment;
 use absh::experiment_map::ExperimentMap;
 use absh::experiment_name::ExperimentName;
 use absh::math::numbers::Numbers;
-use absh::measure::AllMeasures;
-use absh::measure::MaxRss;
-use absh::measure::MeasureDyn;
-use absh::measure::WallTime;
+use absh::measure::tr::AllMeasures;
+use absh::measure::tr::MaxRss;
+use absh::measure::tr::MeasureDyn;
+use absh::measure::tr::WallTime;
 use absh::mem_usage::MemUsage;
 use absh::run_log::RunLog;
 use absh::sh::spawn_sh;
@@ -114,7 +114,7 @@ fn run_test(log: &mut RunLog, test: &mut Experiment) -> anyhow::Result<()> {
         max_rss.mib(),
     )?;
 
-    test.durations.push(duration);
+    test.duration_nanos.push(duration.nanos());
     test.mem_usages.push(max_rss);
     Ok(())
 }
@@ -146,7 +146,7 @@ fn main() -> anyhow::Result<()> {
             name: ExperimentName::A,
             warmup: opts.aw.clone().unwrap_or(String::new()),
             run: opts.a.clone(),
-            durations: Numbers::default(),
+            duration_nanos: Numbers::default(),
             mem_usages: Numbers::default(),
         },
     );
@@ -164,7 +164,7 @@ fn main() -> anyhow::Result<()> {
                     name,
                     warmup: warmup.clone().unwrap_or(String::new()),
                     run,
-                    durations: Numbers::default(),
+                    duration_nanos: Numbers::default(),
                     mem_usages: Numbers::default(),
                 },
             );
@@ -194,7 +194,7 @@ fn main() -> anyhow::Result<()> {
         run_pair(&mut log, &opts, &mut experiments)?;
 
         for (_n, test) in experiments.iter_mut() {
-            test.durations.clear();
+            test.duration_nanos.clear();
             test.mem_usages.clear();
         }
 

@@ -7,6 +7,7 @@ pub mod experiment;
 pub mod experiment_map;
 pub mod experiment_name;
 pub mod fs_util;
+pub mod linear_map;
 pub mod math;
 pub mod maybe_strip_csi_writer;
 pub mod measure;

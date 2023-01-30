@@ -25,11 +25,12 @@ pub(crate) trait Measure {
 pub struct WallTime;
 
 impl Measure for WallTime {
-    type Number = Duration;
+    /// Nanoseconds.
+    type Number = u64;
     type NumberDisplay = Duration;
 
     fn number_to_display(&self, number: Self::Number) -> Self::NumberDisplay {
-        number
+        Duration::from_nanos(number)
     }
 
     fn name(&self) -> &str {
@@ -41,7 +42,7 @@ impl Measure for WallTime {
     }
 
     fn numbers(test: &Experiment) -> &Numbers<Self::Number> {
-        &test.durations
+        &test.duration_nanos
     }
 }
 

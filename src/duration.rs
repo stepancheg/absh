@@ -5,33 +5,9 @@ use std::ops::AddAssign;
 use std::ops::Div;
 use std::ops::Sub;
 
-use crate::math::number::Number;
-
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Default, Debug)]
 pub struct Duration {
     nanos: u64,
-}
-
-impl Number for Duration {
-    fn div_usize(&self, rhs: usize) -> Self {
-        Duration {
-            nanos: self.nanos / (rhs as u64),
-        }
-    }
-
-    fn mul_usize(&self, rhs: usize) -> Self {
-        Duration {
-            nanos: self.nanos.checked_mul(rhs as u64).unwrap(),
-        }
-    }
-
-    fn as_f64(&self) -> f64 {
-        self.seconds_f64()
-    }
-
-    fn from_f64(f: f64) -> Self {
-        Duration::from_seconds_f64(f)
-    }
 }
 
 impl Duration {
