@@ -49,11 +49,12 @@ impl Measure for WallTime {
 pub struct MaxRss;
 
 impl Measure for MaxRss {
-    type Number = MemUsage;
+    /// Bytes.
+    type Number = u64;
     type NumberDisplay = u64;
 
     fn number_to_display(&self, number: Self::Number) -> Self::NumberDisplay {
-        number.mib()
+        MemUsage::from_bytes(number).mib()
     }
 
     fn name(&self) -> &str {
@@ -65,7 +66,7 @@ impl Measure for MaxRss {
     }
 
     fn numbers(test: &Experiment) -> &Numbers<Self::Number> {
-        &test.mem_usages
+        &test.mem_usage_bytes
     }
 }
 

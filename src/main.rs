@@ -115,7 +115,7 @@ fn run_test(log: &mut RunLog, test: &mut Experiment) -> anyhow::Result<()> {
     )?;
 
     test.duration_nanos.push(duration.nanos());
-    test.mem_usages.push(max_rss);
+    test.mem_usage_bytes.push(max_rss.bytes());
     Ok(())
 }
 
@@ -147,7 +147,7 @@ fn main() -> anyhow::Result<()> {
             warmup: opts.aw.clone().unwrap_or(String::new()),
             run: opts.a.clone(),
             duration_nanos: Numbers::default(),
-            mem_usages: Numbers::default(),
+            mem_usage_bytes: Numbers::default(),
         },
     );
 
@@ -165,7 +165,7 @@ fn main() -> anyhow::Result<()> {
                     warmup: warmup.clone().unwrap_or(String::new()),
                     run,
                     duration_nanos: Numbers::default(),
-                    mem_usages: Numbers::default(),
+                    mem_usage_bytes: Numbers::default(),
                 },
             );
         }
@@ -195,7 +195,7 @@ fn main() -> anyhow::Result<()> {
 
         for (_n, test) in experiments.iter_mut() {
             test.duration_nanos.clear();
-            test.mem_usages.clear();
+            test.mem_usage_bytes.clear();
         }
 
         writeln!(log.both_log_and_stderr(), "")?;

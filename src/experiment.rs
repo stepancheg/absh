@@ -2,14 +2,13 @@ use crate::ansi;
 use crate::bars::PlotHighlight;
 use crate::experiment_name::ExperimentName;
 use crate::math::numbers::Numbers;
-use crate::mem_usage::MemUsage;
 
 pub struct Experiment {
     pub name: ExperimentName,
     pub warmup: String,
     pub run: String,
     pub duration_nanos: Numbers<u64>,
-    pub mem_usages: Numbers<MemUsage>,
+    pub mem_usage_bytes: Numbers<u64>,
 }
 
 impl Experiment {

@@ -18,6 +18,10 @@ impl MemUsage {
     pub fn mib(&self) -> u64 {
         self.bytes >> 20
     }
+
+    pub fn bytes(&self) -> u64 {
+        self.bytes
+    }
 }
 
 impl Add for MemUsage {
