@@ -1,8 +1,8 @@
 use std::fmt;
-use std::slice;
 
 use crate::math::number::Number;
 use crate::math::numbers::Numbers;
+use crate::measure::Measure;
 
 pub struct Stats<T: Number> {
     pub count: u64,
@@ -24,16 +24,30 @@ impl<T: Number> Stats<T> {
         millis * millis
     }
 
-    pub fn display_stats(stats: &[Stats<T>]) -> Vec<String> {
-        struct MultiWriter<'s, N: Number> {
+    pub(crate) fn display_stats<M>(stats: &[Stats<T>], m: &M) -> Vec<String>
+    where
+        M: Measure<Number = T>,
+    {
+        struct MultiWriter<'s, M: Measure> {
             vec: Vec<String>,
-            stats: &'s [Stats<N>],
+            m: &'s M,
+            stats: &'s [Stats<M::Number>],
         }
 
-        impl<'s, N: Number> MultiWriter<'s, N> {
-            fn append_n<D: fmt::Display>(&mut self, v: impl Fn(&Stats<N>) -> D) -> fmt::Result {
+        impl<'s, M: Measure> MultiWriter<'s, M> {
+            fn append_n<'d, D: fmt::Display + 'd>(
+                &mut self,
+                v: impl Fn(&'d M, &Stats<M::Number>) -> D,
+            ) -> fmt::Result
+            where
+                's: 'd,
+            {
                 use std::fmt::Write;
-                let values: Vec<String> = self.stats.iter().map(|s| v(s).to_string()).collect();
+                let values: Vec<String> = self
+                    .stats
+                    .iter()
+                    .map(|s| v(self.m, s).to_string())
+                    .collect();
                 let max_len = values.iter().map(|s| s.len()).max().unwrap();
                 for (r, s) in self.vec.iter_mut().zip(&values) {
                     write!(r, "{:>width$}", s, width = max_len)?;
@@ -48,11 +62,14 @@ impl<T: Number> Stats<T> {
                 Ok(())
             }
 
-            fn append_column<D: fmt::Display>(
+            fn append_column<'d, D: fmt::Display + 'd>(
                 &mut self,
                 name: &str,
-                v: impl Fn(&Stats<N>) -> D,
-            ) -> fmt::Result {
+                v: impl Fn(&'d M, &Stats<M::Number>) -> D,
+            ) -> fmt::Result
+            where
+                's: 'd,
+            {
                 if !self.vec[0].is_empty() {
                     self.append_str(" ")?;
                 }
@@ -62,31 +79,24 @@ impl<T: Number> Stats<T> {
             }
 
             fn append_stats(&mut self) -> fmt::Result {
-                self.append_column("n=", |s| s.count)?;
-                self.append_column("mean=", |s| s.mean.display_for_stats())?;
-                self.append_column("std=", |s| s.std.display_for_stats())?;
-                self.append_column("se=", |s| s.se().display_for_stats())?;
-                self.append_column("min=", |s| s.min.display_for_stats())?;
-                self.append_column("max=", |s| s.max.display_for_stats())?;
-                self.append_column("med=", |s| s.med.display_for_stats())?;
+                self.append_column("n=", |_m, s| s.count)?;
+                self.append_column("mean=", |m, s| m.number_display_for_stats(s.mean))?;
+                self.append_column("std=", |m, s| m.number_display_for_stats(s.std))?;
+                self.append_column("se=", |m, s| m.number_display_for_stats(s.se()))?;
+                self.append_column("min=", |m, s| m.number_display_for_stats(s.min))?;
+                self.append_column("max=", |m, s| m.number_display_for_stats(s.max))?;
+                self.append_column("med=", |m, s| m.number_display_for_stats(s.med))?;
                 Ok(())
             }
         }
 
-        let mut w = MultiWriter {
+        let mut w = MultiWriter::<M> {
             vec: vec![String::new(); stats.len()],
             stats,
+            m,
         };
         w.append_stats().unwrap();
         w.vec
-    }
-}
-
-impl<T: Number> fmt::Display for Stats<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let strings = Stats::display_stats(slice::from_ref(self));
-        assert!(strings.len() == 1);
-        f.write_str(&strings[0])
     }
 }
 

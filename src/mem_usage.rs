@@ -78,8 +78,4 @@ impl Number for MemUsage {
     fn from_f64(f: f64) -> Self {
         MemUsage { bytes: f as u64 }
     }
-
-    fn fmt_for_stats(&self, f: &mut fmt::Formatter) -> std::fmt::Result {
-        fmt::Display::fmt(&self.mib(), f)
-    }
 }
