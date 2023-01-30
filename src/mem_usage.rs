@@ -15,10 +15,6 @@ impl MemUsage {
         MemUsage { bytes }
     }
 
-    pub fn mb(&self) -> u64 {
-        self.bytes / 1_000_000
-    }
-
     pub fn mib(&self) -> u64 {
         self.bytes >> 20
     }
