@@ -1,9 +1,12 @@
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum MeasureKey {
     WallTime,
     MaxRss,
 }
 
 impl MeasureKey {
+    pub const ALL: &'static [MeasureKey] = &[MeasureKey::WallTime, MeasureKey::MaxRss];
+
     pub fn index(&self) -> usize {
         match self {
             MeasureKey::WallTime => 0,

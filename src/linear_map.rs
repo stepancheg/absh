@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 /// Map small integer to a value.
 pub struct LinearMap<A> {
     values: Vec<Option<A>>,
@@ -71,5 +73,13 @@ impl<A> LinearMap<A> {
             assert_eq!(ka, kb);
             (ka, va, vb)
         })
+    }
+}
+
+impl<A> Index<usize> for LinearMap<A> {
+    type Output = A;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        self.get(index).unwrap()
     }
 }

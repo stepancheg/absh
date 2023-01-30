@@ -1,3 +1,6 @@
+use std::ops::Index;
+use std::ops::IndexMut;
+
 use crate::experiment_name::ExperimentName;
 use crate::linear_map::LinearMap;
 
@@ -68,5 +71,19 @@ impl<A> ExperimentMap<A> {
         self.values
             .zip(&other.values)
             .map(|(k, a, b)| (ExperimentName::from_index(k), a, b))
+    }
+}
+
+impl<A> Index<ExperimentName> for ExperimentMap<A> {
+    type Output = A;
+
+    fn index(&self, exp: ExperimentName) -> &A {
+        self.get(exp).unwrap()
+    }
+}
+
+impl<A> IndexMut<ExperimentName> for ExperimentMap<A> {
+    fn index_mut(&mut self, exp: ExperimentName) -> &mut A {
+        self.get_mut(exp).unwrap()
     }
 }

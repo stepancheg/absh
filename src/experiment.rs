@@ -2,13 +2,13 @@ use crate::ansi;
 use crate::bars::PlotHighlight;
 use crate::experiment_name::ExperimentName;
 use crate::math::numbers::Numbers;
+use crate::measure::map::MeasureMap;
 
 pub struct Experiment {
     pub name: ExperimentName,
     pub warmup: String,
     pub run: String,
-    pub duration_nanos: Numbers,
-    pub mem_usage_bytes: Numbers,
+    pub measures: MeasureMap<Numbers>,
 }
 
 impl Experiment {
@@ -29,6 +29,6 @@ impl Experiment {
     }
 
     pub fn runs(&self) -> usize {
-        self.duration_nanos.len()
+        self.measures.values().next().unwrap().len()
     }
 }

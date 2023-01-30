@@ -6,6 +6,7 @@ use crate::experiment::Experiment;
 use crate::experiment_map::ExperimentMap;
 use crate::math::numbers::Numbers;
 use crate::math::stats::Stats;
+use crate::measure::key::MeasureKey;
 use crate::mem_usage::MemUsage;
 use crate::render_stats::render_stats;
 use crate::run_log::RunLog;
@@ -39,7 +40,7 @@ impl Measure for WallTime {
     }
 
     fn numbers(test: &Experiment) -> &Numbers {
-        &test.duration_nanos
+        &test.measures[MeasureKey::WallTime]
     }
 }
 
@@ -62,7 +63,7 @@ impl Measure for MaxRss {
     }
 
     fn numbers(test: &Experiment) -> &Numbers {
-        &test.mem_usage_bytes
+        &test.measures[MeasureKey::MaxRss]
     }
 }
 
