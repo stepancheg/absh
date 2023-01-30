@@ -4,7 +4,6 @@ use crate::distr_plot::make_distr_plots;
 use crate::duration::Duration;
 use crate::experiment::Experiment;
 use crate::experiment_map::ExperimentMap;
-use crate::math::numbers::Numbers;
 use crate::math::stats::Stats;
 use crate::measure::key::MeasureKey;
 use crate::mem_usage::MemUsage;
@@ -16,9 +15,10 @@ pub(crate) trait Measure {
 
     fn number_to_display(&self, number: u64) -> Self::NumberDisplay;
 
+    fn key(&self) -> MeasureKey;
+
     fn name(&self) -> &str;
     fn id(&self) -> &str;
-    fn numbers(test: &Experiment) -> &Numbers;
 }
 
 pub struct WallTime;
@@ -31,16 +31,16 @@ impl Measure for WallTime {
         Duration::from_nanos(number)
     }
 
+    fn key(&self) -> MeasureKey {
+        MeasureKey::WallTime
+    }
+
     fn name(&self) -> &str {
         "Time (in seconds)"
     }
 
     fn id(&self) -> &str {
         "wall-time"
-    }
-
-    fn numbers(test: &Experiment) -> &Numbers {
-        &test.measures[MeasureKey::WallTime]
     }
 }
 
@@ -54,16 +54,16 @@ impl Measure for MaxRss {
         MemUsage::from_bytes(number).mib()
     }
 
+    fn key(&self) -> MeasureKey {
+        MeasureKey::MaxRss
+    }
+
     fn name(&self) -> &str {
         "Max RSS (in megabytes)"
     }
 
     fn id(&self) -> &str {
         "max-rss"
-    }
-
-    fn numbers(test: &Experiment) -> &Numbers {
-        &test.measures[MeasureKey::MaxRss]
     }
 }
 
@@ -93,12 +93,12 @@ impl<M: Measure> MeasureDyn for M {
         tests: &ExperimentMap<Experiment>,
         width: usize,
     ) -> anyhow::Result<ExperimentMap<String>> {
-        make_distr_plots(tests, width, Self::numbers)
+        make_distr_plots(tests, width, |t| &t.measures[self.key()])
     }
 
     fn display_stats(&self, tests: &ExperimentMap<Experiment>) -> ExperimentMap<String> {
         let stats: ExperimentMap<_> = tests.map(|t| {
-            Self::numbers(t)
+            t.measures[self.key()]
                 .stats()
                 .unwrap()
                 .map(|n| self.number_to_display(n))
@@ -111,13 +111,16 @@ impl<M: Measure> MeasureDyn for M {
         tests: &ExperimentMap<Experiment>,
         include_distr: bool,
     ) -> anyhow::Result<String> {
-        render_stats(tests, include_distr, self, Self::numbers)
+        render_stats(tests, include_distr, self, |t| &t.measures[self.key()])
     }
 
     fn write_raw(&self, tests: &ExperimentMap<Experiment>, log: &mut RunLog) -> anyhow::Result<()> {
         log.write_raw(
             self.id(),
-            &tests.values().map(Self::numbers).collect::<Vec<_>>(),
+            &tests
+                .values()
+                .map(|t| &t.measures[self.key()])
+                .collect::<Vec<_>>(),
         )
     }
 }
