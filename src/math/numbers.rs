@@ -71,7 +71,7 @@ impl Numbers {
         self.raw.iter().cloned()
     }
 
-    pub fn sorted(&self) -> NumbersSorted<u64> {
+    pub fn sorted(&self) -> NumbersSorted {
         NumbersSorted(&self.sorted)
     }
 

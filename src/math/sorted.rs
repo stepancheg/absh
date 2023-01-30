@@ -1,15 +1,7 @@
 use crate::math::number::Number;
 
-#[derive(Eq, PartialEq, Debug)]
-pub struct NumbersSorted<'a, T: Number>(pub &'a [T]);
-
-impl<T: Number> Clone for NumbersSorted<'_, T> {
-    fn clone(&self) -> Self {
-        NumbersSorted(self.0)
-    }
-}
-
-impl<T: Number> Copy for NumbersSorted<'_, T> {}
+#[derive(Eq, PartialEq, Debug, Clone, Copy)]
+pub struct NumbersSorted<'a>(pub &'a [u64]);
 
 pub enum FilterCond {
     Lt,
@@ -18,7 +10,7 @@ pub enum FilterCond {
     Gt,
 }
 
-impl<'a, T: Number> NumbersSorted<'a, T> {
+impl<'a> NumbersSorted<'a> {
     pub fn len(&self) -> usize {
         self.0.len()
     }
@@ -27,20 +19,20 @@ impl<'a, T: Number> NumbersSorted<'a, T> {
         self.0.is_empty()
     }
 
-    pub fn min(&self) -> Option<T> {
+    pub fn min(&self) -> Option<u64> {
         self.0.first().cloned()
     }
 
-    pub fn max(&self) -> Option<T> {
+    pub fn max(&self) -> Option<u64> {
         self.0.last().cloned()
     }
 
-    pub fn med(&self) -> Option<T> {
+    pub fn med(&self) -> Option<u64> {
         if self.is_empty() {
             None
         } else {
             if self.len() % 2 == 0 {
-                let xy: T = self.0[self.len() / 2 - 1].clone() + self.0[self.len() / 2].clone();
+                let xy: u64 = self.0[self.len() / 2 - 1].clone() + self.0[self.len() / 2].clone();
                 Some(xy.div_usize(2))
             } else {
                 Some(self.0[self.len() / 2].clone())
@@ -48,11 +40,11 @@ impl<'a, T: Number> NumbersSorted<'a, T> {
         }
     }
 
-    pub fn sum(&self) -> T {
+    pub fn sum(&self) -> u64 {
         self.0.iter().cloned().sum()
     }
 
-    pub fn mean(&self) -> Option<T> {
+    pub fn mean(&self) -> Option<u64> {
         if self.len() == 0 {
             None
         } else {
@@ -60,7 +52,7 @@ impl<'a, T: Number> NumbersSorted<'a, T> {
         }
     }
 
-    pub fn std(&self) -> Option<T> {
+    pub fn std(&self) -> Option<u64> {
         if self.len() < 2 {
             return None;
         }
@@ -73,10 +65,10 @@ impl<'a, T: Number> NumbersSorted<'a, T> {
             / ((self.len() - 1) as f64);
         let std_seconds = f64::sqrt(s_2);
 
-        Some(T::from_f64(std_seconds))
+        Some(std_seconds as u64)
     }
 
-    pub fn filter(&self, cond: FilterCond, val: T) -> NumbersSorted<'a, T> {
+    pub fn filter(&self, cond: FilterCond, val: u64) -> NumbersSorted<'a> {
         match cond {
             FilterCond::Lt => {
                 let i = self.0.partition_point(|x| x < &val);
@@ -97,7 +89,7 @@ impl<'a, T: Number> NumbersSorted<'a, T> {
         }
     }
 
-    fn filter_3_sigma_inner(&self) -> Option<NumbersSorted<'a, T>> {
+    fn filter_3_sigma_inner(&self) -> Option<NumbersSorted<'a>> {
         let std = self.std()?;
         let mean = self.mean()?;
         let min = mean - std.mul_usize(3);
@@ -107,7 +99,7 @@ impl<'a, T: Number> NumbersSorted<'a, T> {
         Some(nums)
     }
 
-    pub fn filter_3_sigma(&self) -> NumbersSorted<'a, T> {
+    pub fn filter_3_sigma(&self) -> NumbersSorted<'a> {
         self.filter_3_sigma_inner().unwrap_or(*self)
     }
 }
