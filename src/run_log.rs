@@ -3,7 +3,6 @@ use std::fmt;
 use std::fmt::Write as _;
 use std::fs;
 use std::fs::File;
-use std::os::unix;
 use std::path::Path;
 use std::path::PathBuf;
 use std::time::SystemTime;
@@ -58,6 +57,8 @@ impl RunLog {
 
         #[cfg(unix)]
         let last = {
+            use std::os::unix;
+
             let mut last = absh_logs_dir.clone();
             last.push("last");
 
@@ -65,7 +66,23 @@ impl RunLog {
             unix::fs::symlink(name.file_name().unwrap(), &last).expect("symlink");
             Some(last)
         };
-        #[cfg(not(unix))]
+        #[cfg(windows)]
+        let last = {
+            use std::os::windows;
+
+            let mut last = absh_logs_dir.clone();
+            last.push("last");
+
+            let _ = fs::remove_file(&last);
+            // Symlinking files in Windows is a privileged operation; this will fail unless the user is in developer mode or
+            // otherwise has the permissions to do symlinks (i.e. an admin prompt)
+            //
+            // See https://learn.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/create-symbolic-links
+            // for more info.
+            windows::fs::symlink_file(name.file_name().unwrap(), &last).expect("symlink");
+            Some(last)
+        };
+        #[cfg(not(any(unix, windows)))]
         let last = { None };
 
         RunLog {
