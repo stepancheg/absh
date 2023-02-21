@@ -3,7 +3,6 @@ use std::fmt;
 use std::fmt::Write as _;
 use std::fs;
 use std::fs::File;
-use std::os::unix;
 use std::path::Path;
 use std::path::PathBuf;
 use std::time::SystemTime;
@@ -62,7 +61,7 @@ impl RunLog {
             last.push("last");
 
             let _ = fs::remove_file(&last);
-            unix::fs::symlink(name.file_name().unwrap(), &last).expect("symlink");
+            std::os::unix::fs::symlink(name.file_name().unwrap(), &last).expect("symlink");
             Some(last)
         };
         #[cfg(not(unix))]
