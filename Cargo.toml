@@ -9,7 +9,7 @@ doctest = false
 
 [dependencies]
 anyhow = "1.0.68"
-clap = { version = "4.1.4", features = ["derive", "color"] }
+clap = { version = "3.2.25", features = ["derive", "wrap_help"] }
 atty = "=0.2"
 rand = "0.7.3"
 dirs = "3.0.1"

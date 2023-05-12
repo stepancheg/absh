@@ -20,8 +20,8 @@ use clap::Parser;
 use rand::prelude::SliceRandom;
 use wait4::Wait4;
 
+/// A/B testing for shell scripts.
 #[derive(clap::Parser, Debug)]
-#[command(about = "A/B testing for shell scripts")]
 struct Opts {
     /// A variant shell script.
     #[clap(short)]
