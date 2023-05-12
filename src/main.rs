@@ -23,36 +23,47 @@ use wait4::Wait4;
 #[derive(clap::Parser, Debug)]
 #[command(about = "A/B testing for shell scripts")]
 struct Opts {
-    #[clap(short, help = "A variant shell script")]
+    /// A variant shell script.
+    #[clap(short)]
     a: String,
-    #[clap(short, help = "B variant shell script")]
+    /// B variant shell script.
+    #[clap(short)]
     b: Option<String>,
-    #[clap(short, help = "C variant shell script")]
+    /// C variant shell script.
+    #[clap(short)]
     c: Option<String>,
-    #[clap(short, help = "D variant shell script")]
+    /// D variant shell script.
+    #[clap(short)]
     d: Option<String>,
-    #[clap(short, help = "E variant shell script")]
+    /// E variant shell script.
+    #[clap(short)]
     e: Option<String>,
-    #[clap(short = 'A', long = "a-warmup", help = "A variant warmup shell script")]
+    /// A variant warmup shell script.
+    #[clap(short = 'A', long = "a-warmup")]
     aw: Option<String>,
-    #[clap(short = 'B', long = "b-warmup", help = "B variant warmup shell script")]
+    /// B variant warmup shell script.
+    #[clap(short = 'B', long = "b-warmup")]
     bw: Option<String>,
-    #[clap(short = 'C', long = "c-warmup", help = "C variant warmup shell script")]
+    /// C variant warmup shell script.
+    #[clap(short = 'C', long = "c-warmup")]
     cw: Option<String>,
-    #[clap(short = 'D', long = "d-warmup", help = "D variant warmup shell script")]
+    /// D variant warmup shell script.
+    #[clap(short = 'D', long = "d-warmup")]
     dw: Option<String>,
-    #[clap(short = 'E', long = "e-warmup", help = "E variant warmup shell script")]
+    /// E variant warmup shell script.
+    #[clap(short = 'E', long = "e-warmup")]
     ew: Option<String>,
-    #[clap(short = 'r', help = "Randomise test execution order")]
+    /// Randomise test execution order.
+    #[clap(short = 'r')]
     random_order: bool,
-    #[clap(short = 'i', help = "Ignore the results of the first iteration")]
+    /// Ignore the results of the first iteration.
+    #[clap(short = 'i')]
     ignore_first: bool,
-    #[clap(
-        short = 'n',
-        help = "Stop after n successful iterations (run forever if not specified)"
-    )]
+    /// Stop after n successful iterations (run forever if not specified).
+    #[clap(short = 'n')]
     iterations: Option<u32>,
-    #[clap(short = 'm', long, help = "Also measure max resident set size")]
+    /// Also measure max resident set size.
+    #[clap(short = 'm', long)]
     mem: bool,
 }
 
