@@ -1,4 +1,3 @@
-use std::env;
 use std::fmt;
 use std::fmt::Write as _;
 use std::fs;
@@ -12,7 +11,7 @@ use crate::console_writer::ConsoleWriter;
 use crate::fs_util::write_using_temp;
 use crate::math::numbers::Numbers;
 use crate::maybe_strip_csi_writer::MaybeStripCsiWriter;
-use crate::shell::shell_quote_args;
+use crate::quote_args::shell_quote_self_args;
 
 pub struct RunLog {
     name: PathBuf,
@@ -125,7 +124,7 @@ impl RunLog {
     }
 
     fn args_str() -> String {
-        shell_quote_args(env::args())
+        shell_quote_self_args()
     }
 
     pub fn write_args(&mut self) -> anyhow::Result<()> {
