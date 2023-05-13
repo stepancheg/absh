@@ -65,9 +65,12 @@ struct Opts {
     /// Also measure max resident set size.
     #[clap(short = 'm', long)]
     mem: bool,
+    /// Test is considered failed if it takes longer than this many seconds.
+    #[clap(long)]
+    max_time: Option<u32>,
 }
 
-fn run_test(log: &mut RunLog, test: &mut Experiment) -> anyhow::Result<()> {
+fn run_test(log: &mut RunLog, test: &mut Experiment, opts: &Opts) -> anyhow::Result<()> {
     writeln!(log.both_log_and_stderr())?;
     writeln!(
         log.both_log_and_stderr(),
@@ -103,6 +106,9 @@ fn run_test(log: &mut RunLog, test: &mut Experiment) -> anyhow::Result<()> {
 
     let mut process = spawn_sh(&test.run)?;
     let status = process.wait4()?;
+
+    let duration = Duration::from_nanos(start.elapsed().as_nanos().try_into()?);
+
     if !status.status.success() {
         writeln!(
             log.both_log_and_stderr(),
@@ -111,8 +117,17 @@ fn run_test(log: &mut RunLog, test: &mut Experiment) -> anyhow::Result<()> {
         )?;
         return Ok(());
     }
+    if let Some(max_time_s) = opts.max_time {
+        if duration.seconds_f64() > max_time_s as f64 {
+            writeln!(
+                log.both_log_and_stderr(),
+                "script took too long: {} s",
+                duration.seconds_f64() as u64
+            )?;
+            return Ok(());
+        }
+    }
 
-    let duration = Duration::from_nanos(start.elapsed().as_nanos().try_into()?);
     if status.rusage.maxrss == 0 {
         return Err(anyhow::anyhow!("maxrss not available"));
     }
@@ -141,7 +156,7 @@ fn run_pair(
         indices.shuffle(&mut rand::thread_rng());
     }
     for &index in &indices {
-        run_test(log, tests.get_mut(index).unwrap())?;
+        run_test(log, tests.get_mut(index).unwrap(), opts)?;
     }
     Ok(())
 }
