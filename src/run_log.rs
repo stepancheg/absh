@@ -12,6 +12,7 @@ use crate::fs_util::write_using_temp;
 use crate::math::numbers::Numbers;
 use crate::maybe_strip_csi_writer::MaybeStripCsiWriter;
 use crate::quote_args::shell_quote_self_args;
+use crate::quote_args::shell_quote_self_args_as_text;
 
 pub struct RunLog {
     name: PathBuf,
@@ -115,8 +116,8 @@ impl RunLog {
         write_using_temp(self.name.join("graph-bw.txt"), strip_csi(graph))?;
 
         let report_md = format!(
-            "```\n{}\n```\n```\n{}```\n",
-            shell_quote_self_args(),
+            "```\n{}```\n```\n{}```\n",
+            shell_quote_self_args_as_text(),
             strip_csi(graph),
         );
         write_using_temp(self.name.join("report.md"), report_md)?;
