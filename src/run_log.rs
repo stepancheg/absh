@@ -116,19 +116,15 @@ impl RunLog {
 
         let report_md = format!(
             "```\n{}\n```\n```\n{}```\n",
-            Self::args_str(),
+            shell_quote_self_args(),
             strip_csi(graph),
         );
         write_using_temp(self.name.join("report.md"), report_md)?;
         Ok(())
     }
 
-    fn args_str() -> String {
-        shell_quote_self_args()
-    }
-
     pub fn write_args(&mut self) -> anyhow::Result<()> {
-        let mut args = Self::args_str();
+        let mut args = shell_quote_self_args();
         args.push_str("\n");
         write_using_temp(self.name.join("args.txt"), args)?;
         Ok(())
