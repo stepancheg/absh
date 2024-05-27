@@ -1,8 +1,8 @@
+name: CI
 on:
   - push
   - pull_request
 
-name: CI
 jobs:
   linux-stable:
     name: Linux stable
@@ -10,57 +10,27 @@ jobs:
     env:
       RUST_BACKTRACE: 1
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all --all-features
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --all --all-features
   macos-stable:
     name: macOS stable
     runs-on: macos-latest
     env:
       RUST_BACKTRACE: 1
     steps:
-        - name: Checkout
-          uses: actions/checkout@v2
-        - name: Install Rust
-          uses: actions-rs/toolchain@v1
-          with:
-            profile: minimal
-            toolchain: stable
-            override: true
-        - name: Test
-          uses: actions-rs/cargo@v1
-          with:
-            command: test
-            args: --all --all-features
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --all --all-features
   windows-stable:
     name: Windows stable
     runs-on: windows-latest
     env:
       RUST_BACKTRACE: 1
     steps:
-        - name: Checkout
-          uses: actions/checkout@v2
-        - name: Install Rust
-          uses: actions-rs/toolchain@v1
-          with:
-            profile: minimal
-            toolchain: stable
-            override: true
-        - name: Test
-          uses: actions-rs/cargo@v1
-          with:
-            command: test
-            args: --all --all-features
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --all --all-features
 
   readme-check:
     name: Check README.md
