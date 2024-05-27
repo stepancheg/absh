@@ -36,21 +36,6 @@ pub struct AbshOpts {
     /// E variant shell script.
     #[clap(short)]
     e: Option<String>,
-    /// A variant warmup shell script.
-    #[clap(short = 'A', long = "a-warmup")]
-    aw: Option<String>,
-    /// B variant warmup shell script.
-    #[clap(short = 'B', long = "b-warmup")]
-    bw: Option<String>,
-    /// C variant warmup shell script.
-    #[clap(short = 'C', long = "c-warmup")]
-    cw: Option<String>,
-    /// D variant warmup shell script.
-    #[clap(short = 'D', long = "d-warmup")]
-    dw: Option<String>,
-    /// E variant warmup shell script.
-    #[clap(short = 'E', long = "e-warmup")]
-    ew: Option<String>,
     /// Warmup script to run before each test.
     #[clap(
         short = 'w',
@@ -59,6 +44,21 @@ pub struct AbshOpts {
         value_name = "SCRIPT",
     )]
     warmup: Option<String>,
+    /// A variant warmup shell script, used unless `--warmup` is specified.
+    #[clap(short = 'A', long = "a-warmup")]
+    aw: Option<String>,
+    /// B variant warmup shell script, used unless `--warmup` is specified.
+    #[clap(short = 'B', long = "b-warmup")]
+    bw: Option<String>,
+    /// C variant warmup shell script, used unless `--warmup` is specified.
+    #[clap(short = 'C', long = "c-warmup")]
+    cw: Option<String>,
+    /// D variant warmup shell script, used unless `--warmup` is specified.
+    #[clap(short = 'D', long = "d-warmup")]
+    dw: Option<String>,
+    /// E variant warmup shell script, used unless `--warmup` is specified.
+    #[clap(short = 'E', long = "e-warmup")]
+    ew: Option<String>,
     /// Randomise test execution order.
     #[clap(short = 'r')]
     pub random_order: bool,

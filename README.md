@@ -43,12 +43,12 @@ Options:
   -c <C>                     C variant shell script
   -d <D>                     D variant shell script
   -e <E>                     E variant shell script
-  -A, --a-warmup <AW>        A variant warmup shell script
-  -B, --b-warmup <BW>        B variant warmup shell script
-  -C, --c-warmup <CW>        C variant warmup shell script
-  -D, --d-warmup <DW>        D variant warmup shell script
-  -E, --e-warmup <EW>        E variant warmup shell script
   -w, --warmup <SCRIPT>      Warmup script to run before each test
+  -A, --a-warmup <AW>        A variant warmup shell script, used unless `--warmup` is specified
+  -B, --b-warmup <BW>        B variant warmup shell script, used unless `--warmup` is specified
+  -C, --c-warmup <CW>        C variant warmup shell script, used unless `--warmup` is specified
+  -D, --d-warmup <DW>        D variant warmup shell script, used unless `--warmup` is specified
+  -E, --e-warmup <EW>        E variant warmup shell script, used unless `--warmup` is specified
   -r                         Randomise test execution order
   -i                         Ignore the results of the first iteration
   -n <ITERATIONS>            Stop after n successful iterations (run forever if not specified)
