@@ -1,6 +1,7 @@
 use std::fmt;
 
 use crate::ansi;
+use crate::ansi::AnsiColor;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ExperimentName {
@@ -65,11 +66,11 @@ impl ExperimentName {
 
     pub fn color(&self) -> &'static str {
         match self {
-            ExperimentName::A => ansi::RED,
-            ExperimentName::B => ansi::GREEN,
-            ExperimentName::C => ansi::BLUE,
-            ExperimentName::D => ansi::MAGENTA,
-            ExperimentName::E => ansi::CYAN,
+            ExperimentName::A => AnsiColor::Red.fg(),
+            ExperimentName::B => AnsiColor::Green.fg(),
+            ExperimentName::C => AnsiColor::Blue.fg(),
+            ExperimentName::D => AnsiColor::Magenta.fg(),
+            ExperimentName::E => AnsiColor::Cyan.fg(),
         }
     }
 

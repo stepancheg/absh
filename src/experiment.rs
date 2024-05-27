@@ -1,4 +1,5 @@
 use crate::ansi;
+use crate::ansi::AnsiColor;
 use crate::bars::PlotHighlight;
 use crate::experiment_name::ExperimentName;
 use crate::math::numbers::Numbers;
@@ -15,7 +16,7 @@ impl Experiment {
     pub fn plot_highlights(&self) -> PlotHighlight {
         PlotHighlight {
             non_zero: format!("{}", self.name.color().to_owned()),
-            zero: format!("{}", ansi::WHITE_BG),
+            zero: format!("{}", AnsiColor::White.bg()),
             reset: ansi::RESET.to_owned(),
         }
     }

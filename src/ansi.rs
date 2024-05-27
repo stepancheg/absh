@@ -1,20 +1,46 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
 
-/// Green color
-pub const GREEN: &str = "\x1B[32m";
-/// Red color
-pub const RED: &str = "\x1B[31m";
-/// Yellow color
-pub const YELLOW: &str = "\x1B[33m";
-/// Blue color
-pub const BLUE: &str = "\x1B[34m";
-/// Magenta color
-pub const MAGENTA: &str = "\x1B[35m";
-/// Cyan color
-pub const CYAN: &str = "\x1B[36m";
-/// White background
-pub const WHITE_BG: &str = "\x1B[47m";
+/// ANSI color.
+pub enum AnsiColor {
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+}
+
+impl AnsiColor {
+    pub fn fg(&self) -> &'static str {
+        match self {
+            AnsiColor::Black => "\x1B[30m",
+            AnsiColor::Red => "\x1B[31m",
+            AnsiColor::Green => "\x1B[32m",
+            AnsiColor::Yellow => "\x1B[33m",
+            AnsiColor::Blue => "\x1B[34m",
+            AnsiColor::Magenta => "\x1B[35m",
+            AnsiColor::Cyan => "\x1B[36m",
+            AnsiColor::White => "\x1B[37m",
+        }
+    }
+
+    pub fn bg(&self) -> &'static str {
+        match self {
+            AnsiColor::Black => "\x1B[40m",
+            AnsiColor::Red => "\x1B[41m",
+            AnsiColor::Green => "\x1B[42m",
+            AnsiColor::Yellow => "\x1B[43m",
+            AnsiColor::Blue => "\x1B[44m",
+            AnsiColor::Magenta => "\x1B[45m",
+            AnsiColor::Cyan => "\x1B[46m",
+            AnsiColor::White => "\x1B[47m",
+        }
+    }
+}
+
 /// Reset color
 pub const RESET: &str = "\x1B[0m";
 

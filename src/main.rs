@@ -3,6 +3,7 @@ use std::fmt::Write as _;
 use std::time::Instant;
 
 use absh::ansi;
+use absh::ansi::AnsiColor;
 use absh::duration::Duration;
 use absh::experiment::Experiment;
 use absh::experiment_map::ExperimentMap;
@@ -157,19 +158,19 @@ fn main() -> anyhow::Result<()> {
         writeln!(
             log.both_log_and_stderr(),
             "{yellow}First run pair results will be used in statistics.{reset}",
-            yellow = ansi::YELLOW,
+            yellow = AnsiColor::Yellow.fg(),
             reset = ansi::RESET,
         )?;
         writeln!(
             log.both_log_and_stderr(),
             "{yellow}Results might be skewed.{reset}",
-            yellow = ansi::YELLOW,
+            yellow = AnsiColor::Yellow.fg(),
             reset = ansi::RESET,
         )?;
         writeln!(
             log.both_log_and_stderr(),
             "{yellow}Use `-i` command line flag to ignore the first iteration.{reset}",
-            yellow = ansi::YELLOW,
+            yellow = AnsiColor::Yellow.fg(),
             reset = ansi::RESET,
         )?;
     }
