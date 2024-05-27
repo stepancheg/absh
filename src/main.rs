@@ -14,63 +14,14 @@ use absh::measure::tr::MaxRss;
 use absh::measure::tr::MeasureDyn;
 use absh::measure::tr::WallTime;
 use absh::mem_usage::MemUsage;
+use absh::opts::AbshOpts;
 use absh::run_log::RunLog;
 use absh::sh::spawn_sh;
 use clap::Parser;
 use rand::prelude::SliceRandom;
 use wait4::Wait4;
 
-/// A/B testing for shell scripts.
-#[derive(clap::Parser, Debug)]
-struct Opts {
-    /// A variant shell script.
-    #[clap(short)]
-    a: String,
-    /// B variant shell script.
-    #[clap(short)]
-    b: Option<String>,
-    /// C variant shell script.
-    #[clap(short)]
-    c: Option<String>,
-    /// D variant shell script.
-    #[clap(short)]
-    d: Option<String>,
-    /// E variant shell script.
-    #[clap(short)]
-    e: Option<String>,
-    /// A variant warmup shell script.
-    #[clap(short = 'A', long = "a-warmup")]
-    aw: Option<String>,
-    /// B variant warmup shell script.
-    #[clap(short = 'B', long = "b-warmup")]
-    bw: Option<String>,
-    /// C variant warmup shell script.
-    #[clap(short = 'C', long = "c-warmup")]
-    cw: Option<String>,
-    /// D variant warmup shell script.
-    #[clap(short = 'D', long = "d-warmup")]
-    dw: Option<String>,
-    /// E variant warmup shell script.
-    #[clap(short = 'E', long = "e-warmup")]
-    ew: Option<String>,
-    /// Randomise test execution order.
-    #[clap(short = 'r')]
-    random_order: bool,
-    /// Ignore the results of the first iteration.
-    #[clap(short = 'i')]
-    ignore_first: bool,
-    /// Stop after n successful iterations (run forever if not specified).
-    #[clap(short = 'n')]
-    iterations: Option<u32>,
-    /// Also measure max resident set size.
-    #[clap(short = 'm', long)]
-    mem: bool,
-    /// Test is considered failed if it takes longer than this many seconds.
-    #[clap(long)]
-    max_time: Option<u32>,
-}
-
-fn run_test(log: &mut RunLog, test: &mut Experiment, opts: &Opts) -> anyhow::Result<()> {
+fn run_test(log: &mut RunLog, test: &mut Experiment, opts: &AbshOpts) -> anyhow::Result<()> {
     writeln!(log.both_log_and_stderr())?;
     writeln!(
         log.both_log_and_stderr(),
@@ -148,7 +99,7 @@ fn run_test(log: &mut RunLog, test: &mut Experiment, opts: &Opts) -> anyhow::Res
 
 fn run_pair(
     log: &mut RunLog,
-    opts: &Opts,
+    opts: &AbshOpts,
     tests: &mut ExperimentMap<Experiment>,
 ) -> anyhow::Result<()> {
     let mut indices: Vec<ExperimentName> = tests.keys().collect();
@@ -162,7 +113,7 @@ fn run_pair(
 }
 
 fn main() -> anyhow::Result<()> {
-    let opts: Opts = Opts::parse();
+    let opts: AbshOpts = AbshOpts::parse();
 
     let mut log = RunLog::open();
 
