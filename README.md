@@ -31,7 +31,9 @@ Cargo is a Rust package manager and build system. It can be downloaded [from rus
 
 <!-- absh-help:start -->
 ```
-A/B testing for shell scripts
+A/B testing for shell scripts.
+In scripts, `@ABSH_P` placeholder is replaced with
+the current experiment name (`a`, `b`...).
 
 Usage: absh [OPTIONS] -a <A>
 
@@ -46,6 +48,7 @@ Options:
   -C, --c-warmup <CW>        C variant warmup shell script
   -D, --d-warmup <DW>        D variant warmup shell script
   -E, --e-warmup <EW>        E variant warmup shell script
+  -w, --warmup <SCRIPT>      Warmup script to run before each test
   -r                         Randomise test execution order
   -i                         Ignore the results of the first iteration
   -n <ITERATIONS>            Stop after n successful iterations (run forever if not specified)

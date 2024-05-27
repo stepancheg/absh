@@ -12,6 +12,16 @@ pub enum ExperimentName {
 }
 
 impl ExperimentName {
+    pub(crate) fn all() -> [ExperimentName; 5] {
+        [
+            ExperimentName::A,
+            ExperimentName::B,
+            ExperimentName::C,
+            ExperimentName::D,
+            ExperimentName::E,
+        ]
+    }
+
     pub fn index(&self) -> usize {
         match self {
             ExperimentName::A => 0,
@@ -40,6 +50,16 @@ impl ExperimentName {
             ExperimentName::C => "C",
             ExperimentName::D => "D",
             ExperimentName::E => "E",
+        }
+    }
+
+    pub(crate) fn lower(&self) -> &str {
+        match self {
+            ExperimentName::A => "a",
+            ExperimentName::B => "b",
+            ExperimentName::C => "c",
+            ExperimentName::D => "d",
+            ExperimentName::E => "e",
         }
     }
 
