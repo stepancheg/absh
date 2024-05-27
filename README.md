@@ -31,28 +31,26 @@ Cargo is a Rust package manager and build system. It can be downloaded [from rus
 
 <!-- absh-help:start -->
 ```
-absh
 A/B testing for shell scripts
 
-USAGE:
-    absh [OPTIONS] -a <A>
+Usage: absh [OPTIONS] -a <A>
 
-OPTIONS:
-    -a <A>                       A variant shell script
-    -A, --a-warmup <AW>          A variant warmup shell script
-    -b <B>                       B variant shell script
-    -B, --b-warmup <BW>          B variant warmup shell script
-    -c <C>                       C variant shell script
-    -C, --c-warmup <CW>          C variant warmup shell script
-    -d <D>                       D variant shell script
-    -D, --d-warmup <DW>          D variant warmup shell script
-    -e <E>                       E variant shell script
-    -E, --e-warmup <EW>          E variant warmup shell script
-    -h, --help                   Print help information
-    -i                           Ignore the results of the first iteration
-    -m, --mem                    Also measure max resident set size
-        --max-time <MAX_TIME>    Test is considered failed if it takes longer than this many seconds
-    -n <ITERATIONS>              Stop after n successful iterations (run forever if not specified)
-    -r                           Randomise test execution order
+Options:
+  -a <A>                     A variant shell script
+  -b <B>                     B variant shell script
+  -c <C>                     C variant shell script
+  -d <D>                     D variant shell script
+  -e <E>                     E variant shell script
+  -A, --a-warmup <AW>        A variant warmup shell script
+  -B, --b-warmup <BW>        B variant warmup shell script
+  -C, --c-warmup <CW>        C variant warmup shell script
+  -D, --d-warmup <DW>        D variant warmup shell script
+  -E, --e-warmup <EW>        E variant warmup shell script
+  -r                         Randomise test execution order
+  -i                         Ignore the results of the first iteration
+  -n <ITERATIONS>            Stop after n successful iterations (run forever if not specified)
+  -m, --mem                  Also measure max resident set size
+      --max-time <MAX_TIME>  Test is considered failed if it takes longer than this many seconds
+  -h, --help                 Print help
 ```
 <!-- absh-help:end -->

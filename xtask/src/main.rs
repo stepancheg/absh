@@ -3,6 +3,8 @@ use std::process::Command;
 use std::process::Stdio;
 
 use anyhow::Context;
+use clap::builder::styling;
+use clap::builder::Styles;
 use clap::Parser;
 
 /// Regenerate help for absh.
@@ -93,8 +95,18 @@ impl GenReadme {
     }
 }
 
+pub(crate) fn clap_styles() -> Styles {
+    let heading = styling::AnsiColor::Yellow.on_default().bold();
+    Styles::styled()
+        .header(heading)
+        .usage(heading)
+        .literal(styling::AnsiColor::Green.on_default())
+        .placeholder(styling::AnsiColor::Cyan.on_default())
+}
+
 /// absh build helper.
 #[derive(clap::Parser, Debug)]
+#[clap(styles = clap_styles())]
 enum AbshXTaskOpts {
     GenHelp(GenReadme),
 }

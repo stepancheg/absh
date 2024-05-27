@@ -1,10 +1,23 @@
+use clap::builder::styling;
+use clap::builder::Styles;
+
 use crate::experiment::Experiment;
 use crate::experiment_map::ExperimentMap;
 use crate::experiment_name::ExperimentName;
 use crate::measure::map::MeasureMap;
 
+pub(crate) fn clap_styles() -> Styles {
+    let heading = styling::AnsiColor::Yellow.on_default().bold();
+    Styles::styled()
+        .header(heading)
+        .usage(heading)
+        .literal(styling::AnsiColor::Green.on_default())
+        .placeholder(styling::AnsiColor::Cyan.on_default())
+}
+
 /// A/B testing for shell scripts.
 #[derive(clap::Parser, Debug)]
+#[clap(styles = clap_styles())]
 pub struct AbshOpts {
     /// A variant shell script.
     #[clap(short)]
