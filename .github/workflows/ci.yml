@@ -83,16 +83,8 @@ jobs:
     name: Check formatting
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
         with:
-          profile: minimal
-          toolchain: nightly
-          override: true
-      - name: Check formatting
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: -- --check
+          components: rustfmt
+      - run: cargo fmt -- --check
