@@ -108,12 +108,12 @@ pub(crate) fn clap_styles() -> Styles {
 #[derive(clap::Parser, Debug)]
 #[clap(styles = clap_styles())]
 enum AbshXTaskOpts {
-    GenHelp(GenReadme),
+    GenReadme(GenReadme),
 }
 
 fn main() -> anyhow::Result<()> {
     let opts: AbshXTaskOpts = AbshXTaskOpts::parse();
     match opts {
-        AbshXTaskOpts::GenHelp(gen_help) => gen_help.run(),
+        AbshXTaskOpts::GenReadme(gen_help) => gen_help.run(),
     }
 }
