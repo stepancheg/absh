@@ -22,19 +22,19 @@ pub(crate) fn clap_styles() -> Styles {
 #[clap(styles = clap_styles(), verbatim_doc_comment)]
 pub struct AbshOpts {
     /// A variant shell script.
-    #[clap(short)]
+    #[clap(short, value_name = "SCRIPT")]
     a: String,
     /// B variant shell script.
-    #[clap(short)]
+    #[clap(short, value_name = "SCRIPT")]
     b: Option<String>,
     /// C variant shell script.
-    #[clap(short)]
+    #[clap(short, value_name = "SCRIPT")]
     c: Option<String>,
     /// D variant shell script.
-    #[clap(short)]
+    #[clap(short, value_name = "SCRIPT")]
     d: Option<String>,
     /// E variant shell script.
-    #[clap(short)]
+    #[clap(short, value_name = "SCRIPT")]
     e: Option<String>,
     /// Warmup script to run before each test.
     #[clap(
@@ -45,19 +45,19 @@ pub struct AbshOpts {
     )]
     warmup: Option<String>,
     /// A variant warmup shell script, used unless `--warmup` is specified.
-    #[clap(short = 'A', long = "a-warmup")]
+    #[clap(short = 'A', long = "a-warmup", value_name = "SCRIPT")]
     aw: Option<String>,
     /// B variant warmup shell script, used unless `--warmup` is specified.
-    #[clap(short = 'B', long = "b-warmup")]
+    #[clap(short = 'B', long = "b-warmup", value_name = "SCRIPT")]
     bw: Option<String>,
     /// C variant warmup shell script, used unless `--warmup` is specified.
-    #[clap(short = 'C', long = "c-warmup")]
+    #[clap(short = 'C', long = "c-warmup", value_name = "SCRIPT")]
     cw: Option<String>,
     /// D variant warmup shell script, used unless `--warmup` is specified.
-    #[clap(short = 'D', long = "d-warmup")]
+    #[clap(short = 'D', long = "d-warmup", value_name = "SCRIPT")]
     dw: Option<String>,
     /// E variant warmup shell script, used unless `--warmup` is specified.
-    #[clap(short = 'E', long = "e-warmup")]
+    #[clap(short = 'E', long = "e-warmup", value_name = "SCRIPT")]
     ew: Option<String>,
     /// Randomise test execution order.
     #[clap(short = 'r')]
@@ -72,7 +72,7 @@ pub struct AbshOpts {
     #[clap(short = 'm', long)]
     pub mem: bool,
     /// Test is considered failed if it takes longer than this many seconds.
-    #[clap(long)]
+    #[clap(long, value_name = "SECONDS")]
     pub max_time: Option<u32>,
 }
 

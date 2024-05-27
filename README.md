@@ -35,25 +35,25 @@ A/B testing for shell scripts.
 In scripts, `@ABSH_P` placeholder is replaced with
 the current experiment name (`a`, `b`...).
 
-Usage: absh [OPTIONS] -a <A>
+Usage: absh [OPTIONS] -a <SCRIPT>
 
 Options:
-  -a <A>                     A variant shell script
-  -b <B>                     B variant shell script
-  -c <C>                     C variant shell script
-  -d <D>                     D variant shell script
-  -e <E>                     E variant shell script
-  -w, --warmup <SCRIPT>      Warmup script to run before each test
-  -A, --a-warmup <AW>        A variant warmup shell script, used unless `--warmup` is specified
-  -B, --b-warmup <BW>        B variant warmup shell script, used unless `--warmup` is specified
-  -C, --c-warmup <CW>        C variant warmup shell script, used unless `--warmup` is specified
-  -D, --d-warmup <DW>        D variant warmup shell script, used unless `--warmup` is specified
-  -E, --e-warmup <EW>        E variant warmup shell script, used unless `--warmup` is specified
-  -r                         Randomise test execution order
-  -i                         Ignore the results of the first iteration
-  -n <ITERATIONS>            Stop after n successful iterations (run forever if not specified)
-  -m, --mem                  Also measure max resident set size
-      --max-time <MAX_TIME>  Test is considered failed if it takes longer than this many seconds
-  -h, --help                 Print help
+  -a <SCRIPT>               A variant shell script
+  -b <SCRIPT>               B variant shell script
+  -c <SCRIPT>               C variant shell script
+  -d <SCRIPT>               D variant shell script
+  -e <SCRIPT>               E variant shell script
+  -w, --warmup <SCRIPT>     Warmup script to run before each test
+  -A, --a-warmup <SCRIPT>   A variant warmup shell script, used unless `--warmup` is specified
+  -B, --b-warmup <SCRIPT>   B variant warmup shell script, used unless `--warmup` is specified
+  -C, --c-warmup <SCRIPT>   C variant warmup shell script, used unless `--warmup` is specified
+  -D, --d-warmup <SCRIPT>   D variant warmup shell script, used unless `--warmup` is specified
+  -E, --e-warmup <SCRIPT>   E variant warmup shell script, used unless `--warmup` is specified
+  -r                        Randomise test execution order
+  -i                        Ignore the results of the first iteration
+  -n <ITERATIONS>           Stop after n successful iterations (run forever if not specified)
+  -m, --mem                 Also measure max resident set size
+      --max-time <SECONDS>  Test is considered failed if it takes longer than this many seconds
+  -h, --help                Print help
 ```
 <!-- absh-help:end -->
