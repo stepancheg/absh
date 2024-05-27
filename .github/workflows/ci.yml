@@ -23,6 +23,23 @@ jobs:
         with:
           command: test
           args: --all --all-features
+  readme-check:
+    name: Check README.md
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Check README.md
+        uses: actions-rs/cargo@v1
+        with:
+          command: xtask
+          args: gen-help --check
   macos-stable:
     name: macOS stable
     runs-on: macos-latest
