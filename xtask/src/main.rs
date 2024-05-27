@@ -66,7 +66,12 @@ impl GenReadme {
             .arg("--help")
             .stdin(Stdio::null())
             .stdout(Stdio::piped())
+            .stderr(Stdio::inherit())
             .output()?;
+
+        if !out.status.success() {
+            anyhow::bail!("Failed to run absh --help");
+        }
 
         let ReadmeMd {
             orignial,

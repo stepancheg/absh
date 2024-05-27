@@ -8,7 +8,6 @@ use absh::experiment::Experiment;
 use absh::experiment_map::ExperimentMap;
 use absh::experiment_name::ExperimentName;
 use absh::measure::key::MeasureKey;
-use absh::measure::map::MeasureMap;
 use absh::measure::tr::AllMeasures;
 use absh::measure::tr::MaxRss;
 use absh::measure::tr::MeasureDyn;
@@ -115,41 +114,9 @@ fn run_pair(
 fn main() -> anyhow::Result<()> {
     let opts: AbshOpts = AbshOpts::parse();
 
+    let mut experiments = opts.experiments();
+
     let mut log = RunLog::open();
-
-    let mut experiments = ExperimentMap::default();
-    experiments.insert(
-        ExperimentName::A,
-        Experiment {
-            name: ExperimentName::A,
-            warmup: opts.aw.clone().unwrap_or(String::new()),
-            run: opts.a.clone(),
-            measures: MeasureMap::new_all_default(),
-        },
-    );
-
-    fn parse_opt_test(
-        tests: &mut ExperimentMap<Experiment>,
-        name: ExperimentName,
-        run: &Option<String>,
-        warmup: &Option<String>,
-    ) {
-        if let Some(run) = run.clone() {
-            tests.insert(
-                name,
-                Experiment {
-                    name,
-                    warmup: warmup.clone().unwrap_or(String::new()),
-                    run,
-                    measures: MeasureMap::new_all_default(),
-                },
-            );
-        }
-    }
-    parse_opt_test(&mut experiments, ExperimentName::B, &opts.b, &opts.bw);
-    parse_opt_test(&mut experiments, ExperimentName::C, &opts.c, &opts.cw);
-    parse_opt_test(&mut experiments, ExperimentName::D, &opts.d, &opts.dw);
-    parse_opt_test(&mut experiments, ExperimentName::E, &opts.e, &opts.ew);
 
     eprintln!("Writing absh data to {}/", log.name().display());
     if let Some(last) = log.last() {
@@ -159,7 +126,7 @@ fn main() -> anyhow::Result<()> {
     log.write_args()?;
 
     writeln!(log.log_only(), "random_order: {}", opts.random_order)?;
-    for (n, t) in experiments.iter_mut() {
+    for (n, t) in experiments.iter() {
         writeln!(log.log_only(), "{}.run: {}", n, t.run)?;
         if !t.warmup.is_empty() {
             writeln!(log.log_only(), "{}.warmup: {}", n, t.warmup)?;
