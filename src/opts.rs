@@ -38,7 +38,7 @@ pub struct AbshOpts {
     e: Option<String>,
     /// Warmup script to run before each test.
     #[clap(
-        short = 'w',
+        short,
         long,
         conflicts_with_all = &["aw", "bw", "cw", "dw", "ew"],
         value_name = "SCRIPT",
