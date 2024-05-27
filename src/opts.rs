@@ -8,34 +8,34 @@ use crate::measure::map::MeasureMap;
 pub struct AbshOpts {
     /// A variant shell script.
     #[clap(short)]
-    pub a: String,
+    a: String,
     /// B variant shell script.
     #[clap(short)]
-    pub b: Option<String>,
+    b: Option<String>,
     /// C variant shell script.
     #[clap(short)]
-    pub c: Option<String>,
+    c: Option<String>,
     /// D variant shell script.
     #[clap(short)]
-    pub d: Option<String>,
+    d: Option<String>,
     /// E variant shell script.
     #[clap(short)]
-    pub e: Option<String>,
+    e: Option<String>,
     /// A variant warmup shell script.
     #[clap(short = 'A', long = "a-warmup")]
-    pub aw: Option<String>,
+    aw: Option<String>,
     /// B variant warmup shell script.
     #[clap(short = 'B', long = "b-warmup")]
-    pub bw: Option<String>,
+    bw: Option<String>,
     /// C variant warmup shell script.
     #[clap(short = 'C', long = "c-warmup")]
-    pub cw: Option<String>,
+    cw: Option<String>,
     /// D variant warmup shell script.
     #[clap(short = 'D', long = "d-warmup")]
-    pub dw: Option<String>,
+    dw: Option<String>,
     /// E variant warmup shell script.
     #[clap(short = 'E', long = "e-warmup")]
-    pub ew: Option<String>,
+    ew: Option<String>,
     /// Randomise test execution order.
     #[clap(short = 'r')]
     pub random_order: bool,
