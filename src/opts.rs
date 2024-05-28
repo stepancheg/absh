@@ -33,14 +33,11 @@ pub struct AbshOpts {
     /// D variant shell script.
     #[clap(short, value_name = "SCRIPT")]
     d: Option<String>,
-    /// E variant shell script.
-    #[clap(short, value_name = "SCRIPT")]
-    e: Option<String>,
     /// Warmup script to run before each test.
     #[clap(
         short,
         long,
-        conflicts_with_all = &["aw", "bw", "cw", "dw", "ew"],
+        conflicts_with_all = &["aw", "bw", "cw", "dw"],
         value_name = "SCRIPT",
     )]
     warmup: Option<String>,
@@ -56,9 +53,6 @@ pub struct AbshOpts {
     /// D variant warmup shell script, used unless `--warmup` is specified.
     #[clap(short = 'D', long = "d-warmup", value_name = "SCRIPT")]
     dw: Option<String>,
-    /// E variant warmup shell script, used unless `--warmup` is specified.
-    #[clap(short = 'E', long = "e-warmup", value_name = "SCRIPT")]
-    ew: Option<String>,
     /// Randomise test execution order.
     #[clap(short = 'r')]
     pub random_order: bool,
@@ -87,7 +81,7 @@ impl AbshOpts {
             ExperimentName::B => Some(Self::make_script(self.b.as_ref()?, ExperimentName::B)),
             ExperimentName::C => Some(Self::make_script(self.c.as_ref()?, ExperimentName::C)),
             ExperimentName::D => Some(Self::make_script(self.d.as_ref()?, ExperimentName::D)),
-            ExperimentName::E => Some(Self::make_script(self.e.as_ref()?, ExperimentName::E)),
+            ExperimentName::E => None,
         }
     }
 
@@ -97,7 +91,7 @@ impl AbshOpts {
             ExperimentName::B => self.bw.as_deref(),
             ExperimentName::C => self.cw.as_deref(),
             ExperimentName::D => self.dw.as_deref(),
-            ExperimentName::E => self.ew.as_deref(),
+            ExperimentName::E => None,
         };
         let warmup = letter_warmup.or(self.warmup.as_deref()).unwrap_or_default();
         Self::make_script(warmup, experiment)
