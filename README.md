@@ -22,7 +22,7 @@ B/A: 0.979 0.975..0.983 (95% conf)
 ## How to install
 
 ```sh
-cargo install --git https://github.com/stepancheg/absh
+cargo install --git https://github.com/stepancheg/absh absh
 ```
 
 Cargo is a Rust package manager and build system. It can be downloaded [from rustup.rs](https://rustup.rs/).
