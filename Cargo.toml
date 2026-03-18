@@ -1,8 +1,9 @@
 [package]
 name = "absh"
 version = "0.0.0"
-authors = ["Stiopa Koltsov <stepan.koltsov@gmail.com>"]
+authors = ["Stepan Koltsov <stepan.koltsov@gmail.com>"]
 edition = "2018"
+license = "MIT"
 
 [workspace]
 members = ["xtask"]
